@@ -13,12 +13,14 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 
+@EqualsAndHashCode(callSuper = true)//+
 @Data
 @Getter
 @Setter
@@ -38,13 +40,4 @@ public class Etudiant extends Utilisateur {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "etudiant_ue", joinColumns = @JoinColumn(name = "etudiant_id"), inverseJoinColumns = @JoinColumn(name = "ue_id"))
     private Set<UE> ues = new HashSet<>();
-
-    // Méthodes helper
-    public void addUE(UE ue) {
-        this.ues.add(ue);
-    }
-
-    public void removeUE(UE ue) {
-        this.ues.remove(ue);
-    }
 }

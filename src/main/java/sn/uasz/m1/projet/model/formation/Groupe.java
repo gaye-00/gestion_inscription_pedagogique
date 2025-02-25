@@ -4,6 +4,16 @@ import java.util.HashSet;
 import java.util.Set;
 import jakarta.persistence.*;
 import lombok.*;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
 @Data
@@ -12,6 +22,7 @@ import sn.uasz.m1.projet.model.person.Etudiant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "groupe")
 public class Groupe {
 
     @Id
