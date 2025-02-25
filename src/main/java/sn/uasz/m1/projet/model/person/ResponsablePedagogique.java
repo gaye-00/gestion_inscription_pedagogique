@@ -7,10 +7,20 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sn.uasz.m1.projet.model.formation.Formation;
 
-@EqualsAndHashCode(callSuper = true)//+
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @DiscriminatorValue("RESPONSABLE")
 public class ResponsablePedagogique extends Utilisateur {

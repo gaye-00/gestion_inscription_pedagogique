@@ -20,7 +20,7 @@ import lombok.Setter;
 import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 
-@EqualsAndHashCode(callSuper = true)//+
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Getter
 @Setter
