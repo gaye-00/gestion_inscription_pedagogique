@@ -3,10 +3,9 @@ package sn.uasz.m1.projet.model.person;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+
+
 import sn.uasz.m1.projet.model.formation.Formation;
 
 @Entity
