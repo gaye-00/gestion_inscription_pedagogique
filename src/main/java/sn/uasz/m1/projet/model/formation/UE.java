@@ -47,4 +47,6 @@ public class UE {
     @JoinColumn(name = "formation_id")
     private Formation formation;
 
+    private boolean obligatoire;
+
 }
