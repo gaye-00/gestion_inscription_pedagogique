@@ -34,7 +34,11 @@ public class App {
         EtudiantService etudiantService = new EtudiantService();
 
         // Ajouter une formation
-        Formation formation = new Formation(null, "Master Informatique", Niveau.M1, null, null);
+        // Formation formation = new Formation(null, "Master Informatique", Niveau.M1, null, null);
+        Formation formation = new Formation();
+        formation.setNom("Master Informatique");
+        formation.setCode("MI");
+        formation.setNiveau(Niveau.M1);
         formationService.add(formation);
 
         // Ajouter une UE

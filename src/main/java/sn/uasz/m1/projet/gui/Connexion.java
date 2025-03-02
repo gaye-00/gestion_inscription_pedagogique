@@ -23,6 +23,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
+import sn.uasz.m1.projet.gui.responsablePedagogique.MainFrame;
+import sn.uasz.m1.projet.model.person.User;
+import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class Connexion extends JFrame {
     private final JTextField emailField;
@@ -117,24 +120,29 @@ public class Connexion extends JFrame {
         em = emf.createEntityManager();
     }
 
-    private boolean verifierCredentials(String email, String password) {
+    private int verifierCredentials(String email, String password) {
         try {
-            TypedQuery<Long> query = em.createQuery(
-                "SELECT COUNT(u) FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-                Long.class
+            TypedQuery<Utilisateur> query = em.createQuery(
+                "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
+                Utilisateur.class
             );
             query.setParameter("email", email);
             query.setParameter("password", password);
 
-            System.out.println("Requête : " + query.unwrap(org.hibernate.query.Query.class).getQueryString());
-            Long result = query.getSingleResult();
-            System.out.println("Résultat de la requête : " + result);
+            Utilisateur user = query.getSingleResult();
+            String className = user.getClass().getSimpleName();
 
-            return query.getSingleResult() > 0;
+            if (className.equals("Etudiant")) {
+                return 2; 
+            } else if (className.equals("ResponsablePedagogique")) {
+                return 1;
+            } else {
+                return 0;
+            }
+            
         } catch (Exception e) {
             System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-            // e.printStackTrace();
-            return false;
+            return 0;
         }
     }
 
@@ -147,16 +155,28 @@ public class Connexion extends JFrame {
             return;
         }
 
-        if (verifierCredentials(email, password)) {
+        if (verifierCredentials(email, password) == 2) {
             // new Accueil().setVisible(true);
             JOptionPane.showMessageDialog(
                 this,
-                "Test Connexion réussie",
+                "Test Connexion réussie Etudiant",
                 "Succès",
                 JOptionPane.INFORMATION_MESSAGE,
                 FontIcon.of(MaterialDesign.MDI_CHECK, 20, Color.GREEN)
             );
             this.dispose();
+        } else if (verifierCredentials(email, password) == 1) {
+            User user = new User("username", "ResponsablePedagogique");
+                dispose();
+                new MainFrame(user).setVisible(true);
+            // JOptionPane.showMessageDialog(
+            //     this,
+            //     "Test Connexion réussie Responsable pedagogique",
+            //     "Succès",
+            //     JOptionPane.INFORMATION_MESSAGE,
+            //     FontIcon.of(MaterialDesign.MDI_CHECK, 20, Color.GREEN)
+            // );
+            // this.dispose();
         } else {
             showError("Email ou mot de passe incorrect", "Erreur d'authentification");
         }

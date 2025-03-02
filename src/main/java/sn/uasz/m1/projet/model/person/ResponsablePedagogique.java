@@ -6,6 +6,7 @@ import java.util.Set;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,27 +23,13 @@ import sn.uasz.m1.projet.model.formation.Formation;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@DiscriminatorValue("RESPONSABLE")
+// @DiscriminatorValue("RESPONSABLE")
+@DiscriminatorValue("ResponsablePedagogique")
 public class ResponsablePedagogique extends Utilisateur {
     
-    @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL)
+    // @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "responsable", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Formation> formations = new HashSet<>();
-
-    // public ResponsablePedagogique() {
-    //     super();
-    // }
-
-    // public ResponsablePedagogique(String nom, String prenom, LocalDate dateNaissance, Sexe sexe, String adresse, String email, String password) {
-    //     super(nom, prenom, dateNaissance, sexe, adresse, email, password);
-    // }
-    
-    // public Set<Formation> getFormations() {
-    //     return formations;
-    // }
-
-    // public void setFormations(Set<Formation> formations) {
-    //     this.formations = formations;
-    // }
     
     // Méthodes helper
     public void addFormation(Formation formation) {

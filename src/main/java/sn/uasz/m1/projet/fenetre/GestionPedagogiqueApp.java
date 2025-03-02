@@ -1,19 +1,13 @@
 package sn.uasz.m1.projet.fenetre;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableRowSorter;
 
-import org.w3c.dom.events.DocumentEvent;
-
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.Format;
 import java.util.ArrayList;
 import java.util.List;
 

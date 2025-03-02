@@ -21,7 +21,7 @@ import lombok.Setter;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "TYPE_UTILISATEUR")
+@DiscriminatorColumn(name = "role")
 @Data
 @Getter
 @Setter

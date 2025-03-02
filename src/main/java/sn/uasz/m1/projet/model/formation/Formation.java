@@ -35,6 +35,7 @@ public class Formation {
     private Long id;
 
     private String nom;
+    private String code;
 
     @Enumerated(EnumType.STRING)
     private Niveau niveau;
