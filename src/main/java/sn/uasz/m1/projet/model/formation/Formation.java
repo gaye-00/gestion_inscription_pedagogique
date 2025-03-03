@@ -36,6 +36,7 @@ public class Formation {
 
     private String nom;
     private String code;
+    private Integer nombreOptionsRequis;
 
     @Enumerated(EnumType.STRING)
     private Niveau niveau;
