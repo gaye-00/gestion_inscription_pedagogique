@@ -1,7 +1,10 @@
 package sn.uasz.m1.projet.service;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.Transactional;
 import sn.uasz.m1.projet.interfaces.GenericService;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.utils.JPAUtil;
@@ -17,6 +20,7 @@ public class FormationService implements GenericService<Formation> {
         em.getTransaction().commit();
         em.close();
     }
+
     @Override
     public void update(Formation formation) {
         EntityManager em = JPAUtil.getEntityManager();
@@ -25,6 +29,7 @@ public class FormationService implements GenericService<Formation> {
         em.getTransaction().commit();
         em.close();
     }
+
     @Override
     public void delete(Long formationId) {
         EntityManager em = JPAUtil.getEntityManager();
@@ -36,6 +41,7 @@ public class FormationService implements GenericService<Formation> {
         em.getTransaction().commit();
         em.close();
     }
+
     @Override
 
     public Formation getById(Long formationId) {
@@ -48,8 +54,13 @@ public class FormationService implements GenericService<Formation> {
     @Override
     public List<Formation> getAll() {
         EntityManager em = JPAUtil.getEntityManager();
-        TypedQuery<Formation> query = em.createQuery("SELECT f FROM Formation f", Formation.class);
+        EntityTransaction transaction = em.getTransaction();
+        transaction.begin();
+        TypedQuery<Formation> query = em.createQuery(
+                "SELECT f FROM Formation f LEFT JOIN FETCH f.ues", Formation.class);
+
         List<Formation> formations = query.getResultList();
+        transaction.commit();
         em.close();
         return formations;
     }

@@ -64,11 +64,13 @@ import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 import sn.uasz.m1.projet.model.person.User;
+import sn.uasz.m1.projet.service.FormationService;
 
 public class MainFrame extends JFrame {
     private JPanel contentPanel;
     private CardLayout cardLayout;
     private final User currentUser;
+    private FormationService formationService = new FormationService();
 
     // Constante pour le nom du panel dashboard
     private static final String DASHBOARD_PANEL = "Dashboard";
@@ -98,9 +100,8 @@ public class MainFrame extends JFrame {
         sidePanel.setLayout(new GridLayout(9, 1, 5, 5));
         sidePanel.setBackground(new Color(45, 52, 54)); // Couleur foncée
 
-        String[] buttons = {
-                "Dashboard", "Gérer Formations", "Liste Inscriptions","Gérer Étudiants", "Gérer Groupes", 
-        };
+        String[] buttons = { "Dashboard", "Gérer Formations", "Liste Inscriptions", "Gérer Étudiants",
+                "Gérer Groupes", };
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
@@ -154,13 +155,13 @@ public class MainFrame extends JFrame {
     private JPanel createNouvelleFormationPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-        
+
         // Titre
         JLabel titleLabel = new JLabel("Nouvelle Formation", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         panel.add(titleLabel, BorderLayout.NORTH);
-        
+
         // Formulaire
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
@@ -168,24 +169,24 @@ public class MainFrame extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
-        
+
         // Champs du formulaire
         String[] labels = { "Code de formation:", "Intitulé:", "Niveau:", "Responsable pédagogique:" };
         JTextField codeField = new JTextField(20);
         JTextField intituleField = new JTextField(20);
-        
+
         // Pour le niveau, utiliser les valeurs de l'enum
         JComboBox<Niveau> niveauCombo = new JComboBox<>(Niveau.values());
-        
+
         // Récupérer la liste des responsables pédagogiques depuis la base de données
         List<ResponsablePedagogique> responsables = getResponsablesPedagogiques();
         JComboBox<ResponsablePedagogique> respCombo = new JComboBox<>(
-            responsables.toArray(new ResponsablePedagogique[0]));
-        
+                responsables.toArray(new ResponsablePedagogique[0]));
+
         // Personnaliser l'affichage du ComboBox pour les responsables
         respCombo.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, 
+            public Component getListCellRendererComponent(JList<?> list, Object value,
                     int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof ResponsablePedagogique) {
@@ -195,9 +196,9 @@ public class MainFrame extends JFrame {
                 return this;
             }
         });
-        
+
         JComponent[] fields = { codeField, intituleField, niveauCombo, respCombo };
-        
+
         // Ajouter les champs au formulaire
         for (int i = 0; i < labels.length; i++) {
             JLabel label = new JLabel(labels[i]);
@@ -210,9 +211,9 @@ public class MainFrame extends JFrame {
             gbc.weightx = 0.9;
             formPanel.add(fields[i], gbc);
         }
-        
+
         panel.add(formPanel, BorderLayout.CENTER);
-        
+
         // Boutons d'action
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
@@ -224,44 +225,44 @@ public class MainFrame extends JFrame {
         buttonPanel.add(annulerButton);
         buttonPanel.add(enregistrerButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
-        
+
         // Action des boutons
         enregistrerButton.addActionListener(e -> {
             if (codeField.getText().isEmpty() || intituleField.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                    "Veuillez remplir tous les champs obligatoires.",
-                    "Erreur", JOptionPane.ERROR_MESSAGE);
+                        "Veuillez remplir tous les champs obligatoires.",
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             // Créer une nouvelle formation
             Formation nouvelleFormation = new Formation();
             nouvelleFormation.setCode(codeField.getText());
             nouvelleFormation.setNom(intituleField.getText());
             nouvelleFormation.setNiveau((Niveau) niveauCombo.getSelectedItem());
             nouvelleFormation.setResponsable((ResponsablePedagogique) respCombo.getSelectedItem());
-            
+
             // Sauvegarder dans la base de données
             saveFormation(nouvelleFormation);
-            
+
             JOptionPane.showMessageDialog(this,
-                "Formation créée avec succès!",
-                "Succès", JOptionPane.INFORMATION_MESSAGE);
-            
+                    "Formation créée avec succès!",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
+
             // Réinitialiser les champs
             codeField.setText("");
             intituleField.setText("");
             niveauCombo.setSelectedIndex(0);
             respCombo.setSelectedIndex(0);
-            
+
             // Revenir au dashboard
             cardLayout.show(contentPanel, DASHBOARD_PANEL);
         });
-        
+
         annulerButton.addActionListener(e -> {
             cardLayout.show(contentPanel, DASHBOARD_PANEL);
         });
-        
+
         return panel;
     }
 
@@ -269,10 +270,10 @@ public class MainFrame extends JFrame {
     private List<ResponsablePedagogique> getResponsablesPedagogiques() {
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
-        
+
         try {
             TypedQuery<ResponsablePedagogique> query = em.createQuery(
-                "SELECT r FROM ResponsablePedagogique r", ResponsablePedagogique.class);
+                    "SELECT r FROM ResponsablePedagogique r", ResponsablePedagogique.class);
             return query.getResultList();
         } catch (Exception e) {
             System.err.println("Erreur lors de la récupération des responsables : " + e.getMessage());
@@ -287,7 +288,7 @@ public class MainFrame extends JFrame {
     private void saveFormation(Formation formation) {
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
-        
+
         try {
             em.getTransaction().begin();
             em.persist(formation);
@@ -299,24 +300,23 @@ public class MainFrame extends JFrame {
             System.err.println("Erreur lors de la sauvegarde de la formation : " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Erreur lors de l'enregistrement : " + e.getMessage(),
-                "Erreur", JOptionPane.ERROR_MESSAGE);
+                    "Erreur lors de l'enregistrement : " + e.getMessage(),
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
         } finally {
             em.close();
         }
     }
 
-
     private JPanel createNouvelleUEPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
-    
+
         // Titre
         JLabel titleLabel = new JLabel("Nouvelle Unité d'Enseignement", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         panel.add(titleLabel, BorderLayout.NORTH);
-    
+
         // Formulaire
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(Color.WHITE);
@@ -324,22 +324,23 @@ public class MainFrame extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 10, 10, 10);
-    
+
         // Champs du formulaire
-        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Volume horaire:", 
-                             "Coefficient:", "Responsable UE:", "Description:", "Caractère de l'UE:" };
+        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Volume horaire:",
+                "Coefficient:", "Responsable UE:", "Description:", "Caractère de l'UE:" };
         JTextField codeField = new JTextField(20);
         JTextField intituleField = new JTextField(20);
-    
+
         // Récupérer la liste des formations depuis la base de données
-        List<Formation> formations = getFormations();
+        List<Formation> formations = formationService.getAll();
+        formationService.getAll();
         JComboBox<Formation> formationComboBox = new JComboBox<>(formations.toArray(new Formation[0]));
-        
+
         // Personnaliser l'affichage des formations dans le ComboBox
         formationComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, 
-                                                          boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Formation) {
                     Formation formation = (Formation) value;
@@ -348,21 +349,21 @@ public class MainFrame extends JFrame {
                 return this;
             }
         });
-    
+
         SpinnerModel creditModel = new SpinnerNumberModel(3, 1, 30, 1);
         JSpinner creditSpinner = new JSpinner(creditModel);
-        
+
         SpinnerModel volumeHoraireModel = new SpinnerNumberModel(30, 5, 100, 5);
         JSpinner volumeHoraireSpinner = new JSpinner(volumeHoraireModel);
-        
+
         SpinnerModel coefficientModel = new SpinnerNumberModel(1.0, 0.5, 5.0, 0.5);
         JSpinner coefficientSpinner = new JSpinner(coefficientModel);
-        
+
         JTextField responsableField = new JTextField(20);
-        
+
         JTextArea descriptionArea = new JTextArea(5, 20);
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
-    
+
         // Boutons radio pour le caractère de l'UE
         JRadioButton obligatoireRadio = new JRadioButton("Obligatoire", true);
         JRadioButton optionnelRadio = new JRadioButton("Optionnel");
@@ -372,12 +373,12 @@ public class MainFrame extends JFrame {
         JPanel caracterePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         caracterePanel.add(obligatoireRadio);
         caracterePanel.add(optionnelRadio);
-    
-        JComponent[] fields = { 
-            codeField, intituleField, formationComboBox, creditSpinner, 
-            volumeHoraireSpinner, coefficientSpinner, responsableField, scrollPane, caracterePanel 
+
+        JComponent[] fields = {
+                codeField, intituleField, formationComboBox, creditSpinner,
+                volumeHoraireSpinner, coefficientSpinner, responsableField, scrollPane, caracterePanel
         };
-    
+
         // Ajouter les champs au formulaire
         for (int i = 0; i < labels.length; i++) {
             JLabel label = new JLabel(labels[i]);
@@ -391,7 +392,7 @@ public class MainFrame extends JFrame {
             formPanel.add(fields[i], gbc);
         }
         panel.add(formPanel, BorderLayout.CENTER);
-    
+
         // Boutons d'action
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
@@ -403,7 +404,7 @@ public class MainFrame extends JFrame {
         buttonPanel.add(annulerButton);
         buttonPanel.add(enregistrerButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
-    
+
         // Action des boutons
         enregistrerButton.addActionListener(e -> {
             if (codeField.getText().isEmpty() || intituleField.getText().isEmpty()
@@ -413,10 +414,10 @@ public class MainFrame extends JFrame {
                         "Erreur", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-    
+
             Formation selectedFormation = (Formation) formationComboBox.getSelectedItem();
             boolean estObligatoire = obligatoireRadio.isSelected();
-    
+
             // Créer un nouvel objet UE
             UE nouvelleUE = new UE();
             nouvelleUE.setCode(codeField.getText());
@@ -427,14 +428,14 @@ public class MainFrame extends JFrame {
             nouvelleUE.setNomResponsable(responsableField.getText());
             nouvelleUE.setFormation(selectedFormation);
             nouvelleUE.setObligatoire(estObligatoire);
-    
+
             // Sauvegarder dans la base de données
             saveUE(nouvelleUE);
-    
+
             JOptionPane.showMessageDialog(this,
                     "Unité d'enseignement créée avec succès!",
                     "Succès", JOptionPane.INFORMATION_MESSAGE);
-    
+
             // Réinitialiser les champs
             codeField.setText("");
             intituleField.setText("");
@@ -445,53 +446,38 @@ public class MainFrame extends JFrame {
             responsableField.setText("");
             descriptionArea.setText("");
             obligatoireRadio.setSelected(true);
-    
+
             cardLayout.show(contentPanel, DASHBOARD_PANEL);
         });
-    
+
         annulerButton.addActionListener(e -> {
             cardLayout.show(contentPanel, DASHBOARD_PANEL);
         });
-    
+
         return panel;
     }
-    
+
     // Méthode pour récupérer les formations depuis la BD
-    private List<Formation> getFormations() {
-        emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
-        em = emf.createEntityManager();
-        
-        try {
-            TypedQuery<Formation> query = em.createQuery(
-                "SELECT f FROM Formation f", Formation.class);
-            return query.getResultList();
-        } catch (Exception e) {
-            System.err.println("Erreur lors de la récupération des formations : " + e.getMessage());
-            e.printStackTrace();
-            return new ArrayList<>();
-        } finally {
-            em.close();
-        }
-    }
-    
+
     // Méthode pour sauvegarder une UE dans la BD
     private void saveUE(UE ue) {
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
-        
+
         try {
             em.getTransaction().begin();
-            
-            // Récupérer la formation associée depuis la BD pour éviter les erreurs de détachement
+
+            // Récupérer la formation associée depuis la BD pour éviter les erreurs de
+            // détachement
             Formation formation = em.find(Formation.class, ue.getFormation().getId());
             ue.setFormation(formation);
-            
+
             // Persister l'UE
             em.persist(ue);
-            
+
             // Mettre à jour la relation bidirectionnelle
             formation.addUE(ue);
-            
+
             em.getTransaction().commit();
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
@@ -500,13 +486,12 @@ public class MainFrame extends JFrame {
             System.err.println("Erreur lors de la sauvegarde de l'UE : " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Erreur lors de l'enregistrement : " + e.getMessage(),
-                "Erreur", JOptionPane.ERROR_MESSAGE);
+                    "Erreur lors de l'enregistrement : " + e.getMessage(),
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
         } finally {
             em.close();
         }
     }
-
 
     private JPanel createNouvelEtudiantPanel() {
         JPanel panel = new JPanel(new BorderLayout());
@@ -598,7 +583,7 @@ public class MainFrame extends JFrame {
             // Valider le format de la date
             String dateText = dateField.getText();
             LocalDate dateNaissance = null;
-            
+
             try {
                 // Convertir la chaîne de texte en LocalDate
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -627,13 +612,13 @@ public class MainFrame extends JFrame {
                 nouvelEtudiant.setPrenom(prenomField.getText());
                 nouvelEtudiant.setDateNaissance(dateNaissance); // Utiliser l'objet LocalDate
                 nouvelEtudiant.setEmail(emailField.getText());
-                
+
                 // Initialiser la collection d'UEs
                 nouvelEtudiant.setUes(new HashSet<>());
 
                 // Persister l'étudiant dans la base de données
                 em.persist(nouvelEtudiant);
-                
+
                 // Valider la transaction
                 transaction.commit();
 
@@ -650,7 +635,7 @@ public class MainFrame extends JFrame {
 
                 // Revenir au dashboard
                 cardLayout.show(contentPanel, DASHBOARD_PANEL);
-                
+
                 // Rafraîchir la liste des étudiants si nécessaire
                 refreshStudentList();
 
@@ -659,7 +644,7 @@ public class MainFrame extends JFrame {
                 if (transaction != null && transaction.isActive()) {
                     transaction.rollback();
                 }
-                
+
                 // Afficher un message d'erreur
                 JOptionPane.showMessageDialog(this,
                         "Erreur lors de l'ajout de l'étudiant: " + ex.getMessage(),
@@ -687,23 +672,23 @@ public class MainFrame extends JFrame {
             TypedQuery<Etudiant> query = em.createQuery(
                     "SELECT e FROM Etudiant e ORDER BY e.nom, e.prenom", Etudiant.class);
             List<Etudiant> etudiants = query.getResultList();
-            
+
             // Ici, vous devriez mettre à jour le modèle de votre table ou liste
             // Par exemple :
             // etudiantTableModel.setEtudiants(etudiants);
             // etudiantTableModel.fireTableDataChanged();
-            
+
             // Si vous avez un JTable, vous pouvez le mettre à jour comme ceci:
             // DefaultTableModel model = (DefaultTableModel) etudiantTable.getModel();
             // model.setRowCount(0);
             // for (Etudiant etudiant : etudiants) {
-            //     model.addRow(new Object[]{
-            //         etudiant.getIne(),
-            //         etudiant.getNom(),
-            //         etudiant.getPrenom(),
-            //         etudiant.getDateNaissance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-            //         etudiant.getEmail()
-            //     });
+            // model.addRow(new Object[]{
+            // etudiant.getIne(),
+            // etudiant.getNom(),
+            // etudiant.getPrenom(),
+            // etudiant.getDateNaissance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+            // etudiant.getEmail()
+            // });
             // }
         } finally {
             em.close();
@@ -713,45 +698,45 @@ public class MainFrame extends JFrame {
     private JPanel createDashboardPanel() {
         JPanel dashboardPanel = new JPanel(new BorderLayout());
         dashboardPanel.setBackground(Color.WHITE);
-    
+
         // Titre du dashboard
         JLabel dashboardTitle = new JLabel("Tableau de Bord", JLabel.CENTER);
         dashboardTitle.setFont(new Font("Arial", Font.BOLD, 24));
         dashboardTitle.setForeground(new Color(52, 73, 94));
         dashboardTitle.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         dashboardPanel.add(dashboardTitle, BorderLayout.NORTH);
-    
+
         // Conteneur principal pour les cartes statistiques
         JPanel statsContainer = new JPanel(new GridLayout(2, 2, 20, 20));
         statsContainer.setBackground(Color.WHITE);
         statsContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-    
+
         // Récupérer les statistiques depuis la base de données
         String[][] statData = getStatisticsFromDatabase();
-    
+
         // Couleurs pour les différentes cartes
         Color[] cardColors = {
-            new Color(41, 128, 185), // Bleu
-            new Color(39, 174, 96),  // Vert
-            new Color(142, 68, 173), // Violet
-            new Color(230, 126, 34)  // Orange
+                new Color(41, 128, 185), // Bleu
+                new Color(39, 174, 96), // Vert
+                new Color(142, 68, 173), // Violet
+                new Color(230, 126, 34) // Orange
         };
-    
+
         // Créer les cartes de statistiques
         for (int i = 0; i < statData.length; i++) {
             JPanel statCard = createStatCard(statData[i][0], statData[i][1], statData[i][2], cardColors[i]);
             statsContainer.add(statCard);
         }
-    
+
         dashboardPanel.add(statsContainer, BorderLayout.CENTER);
-    
+
         // Section du bas avec des boutons d'action rapide
         JPanel quickActions = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         quickActions.setBackground(Color.WHITE);
         quickActions.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-    
+
         String[] actionBtns = { "Nouvelle Formation", "Nouvelle UE", "Nouvel Étudiant", "Nouvelle Inscription" };
-        
+
         for (String action : actionBtns) {
             JButton actionBtn = new JButton(action);
             actionBtn.setBackground(new Color(52, 152, 219));
@@ -770,50 +755,52 @@ public class MainFrame extends JFrame {
             });
             quickActions.add(actionBtn);
         }
-    
+
         dashboardPanel.add(quickActions, BorderLayout.SOUTH);
-        
+
         return dashboardPanel;
     }
-    
+
     /**
      * Récupère les statistiques depuis la base de données
+     * 
      * @return Un tableau contenant les données pour chaque carte statistique
      */
     private String[][] getStatisticsFromDatabase() {
         String[][] statData = new String[4][3];
-        
+
         // Initialiser les titres et descriptions
         statData[0][0] = "Formations";
         statData[0][2] = "Nombre total de formations disponibles";
-        
+
         statData[1][0] = "Étudiants";
         statData[1][2] = "Nombre total d'étudiants inscrits";
-        
+
         statData[2][0] = "Unités d'Enseignement";
         statData[2][2] = "Nombre total d'UEs définies";
-        
+
         statData[3][0] = "Inscriptions";
         statData[3][2] = "Nombre d'inscriptions validées";
-        
+
         // Créer un EntityManager pour interroger la base de données
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
-        
+
         try {
             // Compter les formations
             Long formationCount = em.createQuery("SELECT COUNT(f) FROM Formation f", Long.class).getSingleResult();
             statData[0][1] = formationCount.toString();
-            
+
             // Compter les étudiants
             Long etudiantCount = em.createQuery("SELECT COUNT(e) FROM Etudiant e", Long.class).getSingleResult();
             statData[1][1] = etudiantCount.toString();
-            
+
             // Compter les UEs
             Long ueCount = em.createQuery("SELECT COUNT(u) FROM UE u", Long.class).getSingleResult();
             statData[2][1] = ueCount.toString();
-            
-            // Compter les inscriptions (basé sur le nombre d'étudiants qui ont au moins une UE assignée)
+
+            // Compter les inscriptions (basé sur le nombre d'étudiants qui ont au moins une
+            // UE assignée)
             Long inscriptionCount = em.createQuery(
                     "SELECT COUNT(DISTINCT e) FROM Etudiant e JOIN e.ues u", Long.class)
                     .getSingleResult();
@@ -824,13 +811,13 @@ public class MainFrame extends JFrame {
             statData[1][1] = "0";
             statData[2][1] = "0";
             statData[3][1] = "0";
-            
+
             e.printStackTrace();
         } finally {
             // Fermer l'EntityManager
             em.close();
         }
-        
+
         return statData;
     }
 
@@ -855,7 +842,7 @@ public class MainFrame extends JFrame {
         JLabel descLabel = new JLabel(description);
         descLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         descLabel.setForeground(new Color(127, 140, 141));
-        
+
         // Panneau supérieur pour titre et valeur
         JPanel topInfo = new JPanel(new BorderLayout());
         topInfo.setBackground(Color.WHITE);
@@ -1054,8 +1041,8 @@ public class MainFrame extends JFrame {
             tableModel.setRowCount(0); // Effacer les données existantes
 
             // Charger les formations depuis DataStore
-            List<Formation> formations = getFormations();
-            // for (Formation formation : DataStore.getFormations()) {
+            List<Formation> formations = formationService.getAll();
+            // for (Formation formation : DataStore.formationService.getAll()) {
             for (Formation formation : formations) {
                 tableModel.addRow(new Object[] {
                         formation.getCode(),
@@ -1097,9 +1084,9 @@ public class MainFrame extends JFrame {
                     int modelRow = formationsTable.convertRowIndexToModel(selectedRow[0]);
                     String code = tableModel.getValueAt(modelRow, 0).toString();
 
-                    List<Formation> formations = getFormations();
+                    List<Formation> formations = formationService.getAll();
                     // Trouver la formation correspondante
-                    // for (Formation formation : DataStore.getFormations()) {
+                    // for (Formation formation : DataStore.formationService.getAll()) {
                     for (Formation formation : formations) {
                         if (formation.getCode().equals(code)) {
                             selectedFormation[0] = formation;
@@ -1138,13 +1125,14 @@ public class MainFrame extends JFrame {
                             "Erreur", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                    
+
                 // Mettre à jour la formation
                 Formation updatedFormation = new Formation();
                 updatedFormation.setCode(codeField.getText());
                 updatedFormation.setNom(intituleField.getText());
                 updatedFormation.setNiveau((Niveau) niveauCombo.getSelectedItem());
-                // updatedFormation.setResponsable((ResponsablePedagogique) respCombo.getSelectedItem());
+                // updatedFormation.setResponsable((ResponsablePedagogique)
+                // respCombo.getSelectedItem());
 
                 // Remplacer l'ancienne formation
                 saveFormation(updatedFormation);
@@ -1196,7 +1184,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-    
+
     /**
      * Affiche l'interface de gestion des UE pour une formation donnée
      * 
@@ -1377,7 +1365,7 @@ public class MainFrame extends JFrame {
 
                     if (confirm == JOptionPane.YES_OPTION) {
                         // DataStore.deleteUE(selectedUE);
-                        if(deleteUE(selectedUE)) {
+                        if (deleteUE(selectedUE)) {
                             ueTableModel.removeRow(selectedRow);
                             JOptionPane.showMessageDialog(dialogRef[0],
                                     "L'UE a été supprimée avec succès.",
@@ -1386,7 +1374,7 @@ public class MainFrame extends JFrame {
                             JOptionPane.showMessageDialog(dialogRef[0],
                                     "Une erreur s'est produite lors de la suppression de l'UE.",
                                     "Erreur", JOptionPane.ERROR_MESSAGE);
-                        } 
+                        }
                     }
                 }
             } else {
@@ -1421,32 +1409,33 @@ public class MainFrame extends JFrame {
         if (ue == null) {
             return false;
         }
-        
+
         // EntityManagerFactory emf = null;
         // EntityManager em = null;
-        
+
         try {
             emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
             em = emf.createEntityManager();
             em.getTransaction().begin();
-            
+
             // Récupérer l'UE depuis la base de données pour s'assurer qu'elle est gérée
             UE ueToDelete = em.find(UE.class, ue.getId());
-            
+
             if (ueToDelete != null) {
-                // Si l'UE est associée à une formation, on doit d'abord supprimer cette association
+                // Si l'UE est associée à une formation, on doit d'abord supprimer cette
+                // association
                 if (ueToDelete.getFormation() != null) {
                     Formation formation = ueToDelete.getFormation();
                     formation.removeUE(ueToDelete);
                     em.merge(formation);
                 }
-                
+
                 // Supprimer les associations avec les étudiants
                 for (Etudiant etudiant : new HashSet<>(ueToDelete.getEtudiants())) {
                     etudiant.getUes().remove(ueToDelete);
                     em.merge(etudiant);
                 }
-                
+
                 // Supprimer l'UE
                 em.remove(ueToDelete);
                 em.getTransaction().commit();
@@ -1475,19 +1464,20 @@ public class MainFrame extends JFrame {
      * Récupère les UEs liées à une formation spécifique.
      * 
      * @param formation La formation dont on veut récupérer les UEs
-     * @return La liste des UEs liées à cette formation, ou une liste vide si aucune UE n'est trouvée
+     * @return La liste des UEs liées à cette formation, ou une liste vide si aucune
+     *         UE n'est trouvée
      */
     public List<UE> getUEsByFormation(Formation formation) {
         if (formation == null) {
             return new ArrayList<>();
         }
-        
+
         // Utilisation de JPA pour récupérer les UEs liées à la formation
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
         try {
             TypedQuery<UE> query = em.createQuery(
-                "SELECT u FROM UE u WHERE u.formation = :formation", UE.class);
+                    "SELECT u FROM UE u WHERE u.formation = :formation", UE.class);
             query.setParameter("formation", formation);
             return query.getResultList();
         } catch (Exception e) {
@@ -1561,8 +1551,8 @@ public class MainFrame extends JFrame {
         // Liste déroulante des formations
         DefaultComboBoxModel<Formation> formationModel = new DefaultComboBoxModel<>();
         // Remplir le modèle avec les formations disponibles
-        // for (Formation formation : DataStore.getFormations()) {
-        for (Formation formation : getFormations()) {
+        // for (Formation formation : DataStore.formationService.getAll()) {
+        for (Formation formation : formationService.getAll()) {
             formationModel.addElement(formation);
         }
 
@@ -1645,12 +1635,7 @@ public class MainFrame extends JFrame {
             }
 
             Formation selectedFormation = (Formation) formationComboBox.getSelectedItem();
-            // UE nouvelleUE = new UE(
-            //         codeField.getText(),
-            //         intituleField.getText(),
-            //         (int) creditSpinner.getValue(),
-            //         descriptionArea.getText(),
-            //         selectedFormation, false);
+
             UE nouvelleUE = new UE();
             nouvelleUE.setCode(codeField.getText());
             nouvelleUE.setNom(intituleField.getText());
@@ -1703,29 +1688,29 @@ public class MainFrame extends JFrame {
         if (ue == null) {
             return false;
         }
-        
+
         // EntityManagerFactory emf = null;
         // EntityManager em = null;
-        
+
         try {
             emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
             em = emf.createEntityManager();
             em.getTransaction().begin();
-            
+
             // Vérifier si l'UE existe déjà avec le même code (qui est unique)
             if (ue.getCode() != null && !ue.getCode().isEmpty()) {
                 TypedQuery<Long> query = em.createQuery(
-                    "SELECT COUNT(u) FROM UE u WHERE u.code = :code", Long.class);
+                        "SELECT COUNT(u) FROM UE u WHERE u.code = :code", Long.class);
                 query.setParameter("code", ue.getCode());
                 Long count = query.getSingleResult();
-                
+
                 if (count > 0) {
                     // UE avec ce code existe déjà
                     em.getTransaction().rollback();
                     return false;
                 }
             }
-            
+
             // Si l'UE a une formation associée, s'assurer que la formation est bien gérée
             if (ue.getFormation() != null) {
                 Formation formation = em.find(Formation.class, ue.getFormation().getId());
@@ -1734,12 +1719,12 @@ public class MainFrame extends JFrame {
                     formation.getUes().add(ue);
                 }
             }
-            
+
             // Persister l'UE
             em.persist(ue);
             em.getTransaction().commit();
             return true;
-            
+
         } catch (Exception e) {
             if (em != null && em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
@@ -1759,7 +1744,8 @@ public class MainFrame extends JFrame {
     /**
      * Création d'un panneau pour modifier une UE existante
      */
-    private JPanel createModifierUEPanel(UE ue, Formation formation, JDialog parentDialog, DefaultTableModel tableModel, int rowIndex) {
+    private JPanel createModifierUEPanel(UE ue, Formation formation, JDialog parentDialog, DefaultTableModel tableModel,
+            int rowIndex) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
@@ -1802,8 +1788,8 @@ public class MainFrame extends JFrame {
         // Liste déroulante des formations
         DefaultComboBoxModel<Formation> formationModel = new DefaultComboBoxModel<>();
         // Remplir le modèle avec les formations disponibles
-        // for (Formation f : DataStore.getFormations()) {
-        for (Formation f : getFormations()) {
+        // for (Formation f : DataStore.formationService.getAll()) {
+        for (Formation f : formationService.getAll()) {
             formationModel.addElement(f);
             if (ue.getFormation() != null && f.getCode().equals(ue.getFormation().getCode())) {
                 formationModel.setSelectedItem(f);
@@ -1827,7 +1813,7 @@ public class MainFrame extends JFrame {
         });
 
         // SpinnerModel creditModel = new SpinnerNumberModel(ue.getCredits(), 1, 10, 1);
-        SpinnerModel creditModel = new SpinnerNumberModel((int)ue.getCredits(), 1, 10, 1);
+        SpinnerModel creditModel = new SpinnerNumberModel((int) ue.getCredits(), 1, 10, 1);
         JSpinner creditSpinner = new JSpinner(creditModel);
 
         JTextArea descriptionArea = new JTextArea(ue.getNom(), 5, 20);
@@ -1899,12 +1885,13 @@ public class MainFrame extends JFrame {
             ue.setNom(intituleField.getText());
             ue.setCredits((int) creditSpinner.getValue());
             // ue.setDescription(descriptionArea.getText());
+            ue.setObligatoire(obligatoireRadio.isSelected() ? true : false);
             ue.setFormation(selectedFormation);
 
             // Mettre à jour dans la base de données
             // DataStore.updateUE(ue);
-            
-            if(updateUE(ue)) {
+
+            if (updateUE(ue)) {
                 formationComboBox.addItem(selectedFormation);
             } else {
                 JOptionPane.showMessageDialog(parentDialog,
@@ -1920,7 +1907,7 @@ public class MainFrame extends JFrame {
             tableModel.setValueAt(ue.getNom(), rowIndex, 3); // ! ue.getDescription()
             // tableModel.setValueAt(ue.getCaracteristique() != null ?
             // ue.getCaracteristique() : "", rowIndex, 4);
-
+            tableModel.setValueAt(ue.isObligatoire() ? "obligatoire" : "optionnel", rowIndex, 4);
             JOptionPane.showMessageDialog(parentDialog,
                     "Unité d'enseignement modifiée avec succès!",
                     "Succès", JOptionPane.INFORMATION_MESSAGE);
@@ -1945,37 +1932,37 @@ public class MainFrame extends JFrame {
         if (ue == null || ue.getId() == null) {
             return false;
         }
-        
+
         EntityManagerFactory emf = null;
         EntityManager em = null;
-        
+
         try {
             emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
             em = emf.createEntityManager();
             em.getTransaction().begin();
-            
+
             // Vérifier si l'UE existe dans la base de données
             UE existingUE = em.find(UE.class, ue.getId());
             if (existingUE == null) {
                 em.getTransaction().rollback();
                 return false;
             }
-            
+
             // Vérifier si le nouveau code est déjà utilisé par une autre UE
             if (ue.getCode() != null && !ue.getCode().equals(existingUE.getCode())) {
                 TypedQuery<Long> query = em.createQuery(
-                    "SELECT COUNT(u) FROM UE u WHERE u.code = :code AND u.id != :id", Long.class);
+                        "SELECT COUNT(u) FROM UE u WHERE u.code = :code AND u.id != :id", Long.class);
                 query.setParameter("code", ue.getCode());
                 query.setParameter("id", ue.getId());
                 Long count = query.getSingleResult();
-                
+
                 if (count > 0) {
                     // Code déjà utilisé par une autre UE
                     em.getTransaction().rollback();
                     return false;
                 }
             }
-            
+
             // Mettre à jour les attributs de l'UE existante
             existingUE.setCode(ue.getCode());
             existingUE.setNom(ue.getNom());
@@ -1984,12 +1971,12 @@ public class MainFrame extends JFrame {
             existingUE.setCredits(ue.getCredits());
             existingUE.setNomResponsable(ue.getNomResponsable());
             existingUE.setObligatoire(ue.isObligatoire());
-            
+
             // Gérer le changement de formation si nécessaire
-            if (ue.getFormation() != null && 
-                (existingUE.getFormation() == null || 
-                !existingUE.getFormation().getId().equals(ue.getFormation().getId()))) {
-                
+            if (ue.getFormation() != null &&
+                    (existingUE.getFormation() == null ||
+                            !existingUE.getFormation().getId().equals(ue.getFormation().getId()))) {
+
                 // Enlever l'UE de l'ancienne formation si elle existe
                 if (existingUE.getFormation() != null) {
                     Formation oldFormation = em.find(Formation.class, existingUE.getFormation().getId());
@@ -1998,7 +1985,7 @@ public class MainFrame extends JFrame {
                         em.merge(oldFormation);
                     }
                 }
-                
+
                 // Ajouter l'UE à la nouvelle formation
                 Formation newFormation = em.find(Formation.class, ue.getFormation().getId());
                 if (newFormation != null) {
@@ -2014,12 +2001,12 @@ public class MainFrame extends JFrame {
                 }
                 existingUE.setFormation(null);
             }
-            
+
             // Persister les changements
             em.merge(existingUE);
             em.getTransaction().commit();
             return true;
-            
+
         } catch (Exception e) {
             if (em != null && em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
@@ -2149,7 +2136,8 @@ public class MainFrame extends JFrame {
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         // Récupérer les étudiants inscrits à cette formation
-        // List<Etudiant> formationEtudiants = DataStore.getEtudiantsByFormation(formation);
+        // List<Etudiant> formationEtudiants =
+        // DataStore.getEtudiantsByFormation(formation);
         List<Etudiant> formationEtudiants = getEtudiantsByFormation(formation);
 
         for (Etudiant etudiant : formationEtudiants) {
@@ -2179,32 +2167,35 @@ public class MainFrame extends JFrame {
 
     /**
      * Récupère les étudiants inscrits à une formation spécifique.
-     * Un étudiant est considéré comme inscrit à une formation s'il est inscrit à au moins une UE
+     * Un étudiant est considéré comme inscrit à une formation s'il est inscrit à au
+     * moins une UE
      * appartenant à cette formation.
      * 
      * @param formation La formation dont on veut récupérer les étudiants inscrits
-     * @return La liste des étudiants inscrits à cette formation, ou une liste vide si aucun étudiant n'est trouvé
+     * @return La liste des étudiants inscrits à cette formation, ou une liste vide
+     *         si aucun étudiant n'est trouvé
      */
     public List<Etudiant> getEtudiantsByFormation(Formation formation) {
         if (formation == null) {
             return new ArrayList<>();
         }
-        
+
         // EntityManagerFactory emf = null;
         // EntityManager em = null;
-        
+
         try {
             emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
             em = emf.createEntityManager();
-            
-            // Requête JPQL pour récupérer les étudiants inscrits à au moins une UE de cette formation
+
+            // Requête JPQL pour récupérer les étudiants inscrits à au moins une UE de cette
+            // formation
             TypedQuery<Etudiant> query = em.createQuery(
-                "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation = :formation", 
-                Etudiant.class);
+                    "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation = :formation",
+                    Etudiant.class);
             query.setParameter("formation", formation);
-            
+
             return query.getResultList();
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -2281,4 +2272,5 @@ public class MainFrame extends JFrame {
         });
         return button;
     }
+
 }

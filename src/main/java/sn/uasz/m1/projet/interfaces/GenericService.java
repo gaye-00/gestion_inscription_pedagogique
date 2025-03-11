@@ -1,7 +1,4 @@
 package sn.uasz.m1.projet.interfaces;
-
-
-
 import java.util.List;
 
 public interface GenericService<T> {

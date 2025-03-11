@@ -155,7 +155,10 @@ public class Connexion extends JFrame {
             return;
         }
 
-        if (verifierCredentials(email, password) == 2) {
+        if (verifierCredentials(email, password) == 2)
+        // if (verifierCredentials(email, password) == 2)
+        
+        {
             // new Accueil().setVisible(true);
             JOptionPane.showMessageDialog(
                 this,
