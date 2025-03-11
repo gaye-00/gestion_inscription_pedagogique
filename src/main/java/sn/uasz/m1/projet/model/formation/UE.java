@@ -13,11 +13,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
+@EqualsAndHashCode(exclude = {"etudiants"})
 @Data
 @Getter
 @Setter
@@ -46,6 +49,10 @@ public class UE {
     @ManyToOne
     @JoinColumn(name = "formation_id")
     private Formation formation;
+
+    @ManyToOne
+    @JoinColumn(name = "enseignant_id")
+    private Enseignant enseignant;
 
     private boolean obligatoire;
 

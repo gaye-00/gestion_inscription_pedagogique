@@ -8,6 +8,7 @@ import sn.uasz.m1.projet.gui.Connexion;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Niveau;
 import sn.uasz.m1.projet.model.formation.UE;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.Sexe;
 import sn.uasz.m1.projet.service.EtudiantService;
@@ -41,8 +42,16 @@ public class App {
         formation.setNiveau(Niveau.M1);
         formationService.add(formation);
 
+        // Créer un enseignant
+        Enseignant enseignant = new Enseignant();
+        enseignant.setMatricule("E0234");
+        enseignant.setNom("Gaye");
+        enseignant.setPrenom("Mohamed");
+        enseignant.setEmail("md42.gmail.com");
+        enseignant.setTelephone("777777777");
+
         // Ajouter une UE
-        UE ue = new UE(null, "ALG001", "Algorithmes avancés", 6, 4.9, 4, "resp", null, formation, true);
+        UE ue = new UE(null, "ALG001", "Algorithmes avancés", 6, 4.9, 4, "resp", null, formation, enseignant, true);
         ueService.add(ue);
 
         // Ajouter un étudiant

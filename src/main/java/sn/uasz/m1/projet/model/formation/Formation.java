@@ -19,6 +19,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 
 @Data
@@ -43,6 +44,9 @@ public class Formation {
 
     @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL)
     private Set<UE> ues = new HashSet<>();
+
+    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL)
+    private Set<Etudiant> etudiants = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "responsable_id")
