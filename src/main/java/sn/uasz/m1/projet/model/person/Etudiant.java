@@ -40,4 +40,7 @@ public class Etudiant extends Utilisateur {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "etudiant_ue", joinColumns = @JoinColumn(name = "etudiant_id"), inverseJoinColumns = @JoinColumn(name = "ue_id"))
     private Set<UE> ues = new HashSet<>();
+
+    // @Default(false)
+    private boolean inscriptionValidee;
 }
