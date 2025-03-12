@@ -1,90 +1,103 @@
 package sn.uasz.m1.projet.dao;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
+import lombok.NoArgsConstructor;
+import sn.uasz.m1.projet.interfaces.GenericService;
+import sn.uasz.m1.projet.interfaces.IEtudiantDAO;
+import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
+import sn.uasz.m1.projet.utils.JPAUtil;
 
-public class EtudiantDAO {
+import java.util.ArrayList;
+import java.util.List;
 
-    private static final String PERSISTENCE_UNIT_NAME = "gestion_inscription_pedagogiquePU";
-    private static EntityManagerFactory factory;
+@NoArgsConstructor
+public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
 
-    public EtudiantDAO() {
-        factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
-    }
-
-    // Create
-    public void create(Etudiant etudiant) {
-        try (EntityManager em = factory.createEntityManager()) {
+    @Override
+    public boolean create(Etudiant etudiant) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
             em.getTransaction().begin();
             em.persist(etudiant);
             em.getTransaction().commit();
             em.close();
+            return true;
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            return false;
         }
     }
 
-    // Read by ID
-    public Etudiant findById(Long id) {
-        try (EntityManager em = factory.createEntityManager()) {
-            Etudiant etudiant = em.find(Etudiant.class, id);
-            em.close();
-            return etudiant;
-        }
-    }
-
-    // Read all
-    public List<Etudiant> findAll() {
-        try (EntityManager em = factory.createEntityManager()) {
-            TypedQuery<Etudiant> query = em.createQuery("SELECT e FROM Etudiant e", Etudiant.class);
-            List<Etudiant> etudiants = query.getResultList();
-            em.close();
-            return etudiants;
-        }
-    }
-
-    // Update
-    public void update(Etudiant etudiant) {
-        try (EntityManager em = factory.createEntityManager()) {
+    @Override
+    public boolean update(Etudiant etudiant) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
             em.getTransaction().begin();
             em.merge(etudiant);
             em.getTransaction().commit();
             em.close();
+            return true;
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+            return false;
         }
     }
 
-    // Delete
-    public void delete(Long id) {
-        try (EntityManager em = factory.createEntityManager()) {
+    @Override
+    public boolean delete(Long etudiantId) {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             em.getTransaction().begin();
-            Etudiant etudiant = em.find(Etudiant.class, id);
+            Etudiant etudiant = em.find(Etudiant.class, etudiantId);
             if (etudiant != null) {
                 em.remove(etudiant);
+                em.getTransaction().commit();
+                return true;
+            } else {
+                em.getTransaction().rollback();
+
+                return false;
             }
-            em.getTransaction().commit();
-            em.close();
+        } catch (Exception e) {
+
+            return false;
         }
+
     }
 
-    // Vérifie si l'inscription de l'étudiant est validée
+    @Override
+    public Etudiant findById(Long etudiantId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        Etudiant etudiant = em.find(Etudiant.class, etudiantId);
+        em.close();
+        return etudiant;
+    }
+
+    @Override
+    public List<Etudiant> findAll() {
+        EntityManager em = JPAUtil.getEntityManager();
+        TypedQuery<Etudiant> query = em.createQuery("SELECT e FROM Etudiant e", Etudiant.class);
+        List<Etudiant> etudiants = query.getResultList();
+        em.close();
+        return etudiants;
+    }
+
+    @Override
     public boolean isInscriptionValidee(Long etudiantId) {
-        try (EntityManager em = factory.createEntityManager()) {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
             TypedQuery<Boolean> query = em.createQuery(
-                "SELECT e.inscriptionValidee FROM Etudiant e WHERE e.id = :etudiantId",
-                Boolean.class
-            );
+                    "SELECT e.inscriptionValidee FROM Etudiant e WHERE e.id = :etudiantId",
+                    Boolean.class);
             query.setParameter("etudiantId", etudiantId);
             return query.getSingleResult() != null && query.getSingleResult();
         }
     }
 
-    // Inscrit un étudiant aux UEs optionnelles sélectionnées
+    @Override
     public boolean inscrireUEsOptionelles(Long etudiantId, List<Long> selectedUEIds) {
-        try (EntityManager em = factory.createEntityManager()) {
+        try (EntityManager em = JPAUtil.getEntityManager();) {
             em.getTransaction().begin();
 
             // Récupérer l'étudiant depuis la base de données
@@ -96,7 +109,7 @@ public class EtudiantDAO {
 
             // Récupérer les UEs sélectionnées
             TypedQuery<UE> query = em.createQuery(
-                "SELECT ue FROM UE ue WHERE ue.id IN :ueIds AND ue.obligatoire = false", UE.class);
+                    "SELECT ue FROM UE ue WHERE ue.id IN :ueIds AND ue.obligatoire = false", UE.class);
             query.setParameter("ueIds", selectedUEIds);
             List<UE> selectedUEs = query.getResultList();
 
@@ -115,5 +128,27 @@ public class EtudiantDAO {
             return false;
         }
     }
-}
 
+    @Override
+    public List<Etudiant> getEtudiantsByFormation(Formation formation) {
+        if (formation == null) {
+            return new ArrayList<>();
+        }
+        try (EntityManager em = JPAUtil.getEntityManager();) {
+            // Requête JPQL pour récupérer les étudiants inscrits à au moins une UE de cette
+            // formation
+            TypedQuery<Etudiant> query = em.createQuery(
+                    "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation = :formation",
+                    Etudiant.class);
+            query.setParameter("formation", formation);
+
+            return query.getResultList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+
+    }
+
+}

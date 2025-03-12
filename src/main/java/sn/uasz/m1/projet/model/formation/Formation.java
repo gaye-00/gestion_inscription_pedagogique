@@ -1,6 +1,7 @@
 package sn.uasz.m1.projet.model.formation;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -58,4 +59,20 @@ public class Formation {
         this.ues.remove(ue);
         ue.setFormation(null);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Formation formation = (Formation) o;
+        return Objects.equals(id, formation.id); // Assurez-vous d'utiliser un champ unique comme ID
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id); // Assurez-vous que 'id' est unique et non nul
+    }
+
 }

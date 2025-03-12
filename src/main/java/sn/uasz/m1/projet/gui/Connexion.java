@@ -233,7 +233,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
 import sn.uasz.m1.projet.gui.etudiant.MainFrameEtudiant;
-import sn.uasz.m1.projet.gui.responsablePedagogique.MainFrame;
+import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.model.person.User;
 import sn.uasz.m1.projet.model.person.Utilisateur;
 
@@ -323,7 +323,7 @@ public class Connexion extends JFrame {
         } else if (result == 1) {
             User user = new User(email, "ResponsablePedagogique");
             dispose();
-            new MainFrame(user).setVisible(true);
+            new FenetrePrincipal(user).setVisible(true);
         } else {
             showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
         }

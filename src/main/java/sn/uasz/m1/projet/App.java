@@ -4,17 +4,17 @@ import java.time.LocalDate;
 
 import javax.swing.SwingUtilities;
 
+import sn.uasz.m1.projet.dao.EtudiantDAO;
+import sn.uasz.m1.projet.dao.FormationDAO;
+import sn.uasz.m1.projet.dao.UEDAO;
 import sn.uasz.m1.projet.gui.Connexion;
-import sn.uasz.m1.projet.gui.responsablePedagogique.MainFrame;
+import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Niveau;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.Sexe;
 import sn.uasz.m1.projet.model.person.User;
-import sn.uasz.m1.projet.service.EtudiantService;
-import sn.uasz.m1.projet.service.FormationService;
-import sn.uasz.m1.projet.service.UEService;
 import sn.uasz.m1.projet.utils.JPAUtil;
 
 /**
@@ -28,7 +28,7 @@ public class App {
             // Connexion connexion = new Connexion();
             // connexion.setVisible(true);
             User user = new User("Al Hamine", "Administrateur");
-            new MainFrame(user).setVisible(true);
+            new FenetrePrincipal(user).setVisible(true);
             // FormationService formationService = new FormationService();
             // UEService ueService = new UEService();
             // EtudiantService etudiantService = new EtudiantService();

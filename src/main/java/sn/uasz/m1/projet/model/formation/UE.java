@@ -1,5 +1,7 @@
 package sn.uasz.m1.projet.model.formation;
+
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.Column;
@@ -48,5 +50,20 @@ public class UE {
     private Formation formation;
 
     private boolean obligatoire;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        UE ue = (UE) o;
+        return Objects.equals(id, ue.id); // Utilisez un identifiant unique
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id); // Assurez-vous que 'id' est unique et non nul
+    }
 
 }
