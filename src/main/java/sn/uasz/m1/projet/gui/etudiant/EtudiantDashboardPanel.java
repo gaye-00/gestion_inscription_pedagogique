@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Set; 
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -47,7 +47,7 @@ public class EtudiantDashboardPanel extends JPanel {
     
     private JLabel nameLabel;
     private JLabel ineLabel;
-    private JLabel emailLabel;
+    private JLabel emailLabel; 
     private JLabel sexeLabel;
     private JLabel formationLabel;
     private JLabel groupeTdLabel;
@@ -309,6 +309,7 @@ public class EtudiantDashboardPanel extends JPanel {
             
             // Chargement de la formation de l'étudiant
             formation = formationDAO.findFormationByEtudiant(etudiantId);
+            System.out.println("### formation : " +formation);
             if (formation != null) {
                 formationLabel.setText(formation.getNom() + " - " + formation.getNiveau());
                 
@@ -325,6 +326,16 @@ public class EtudiantDashboardPanel extends JPanel {
                 // Mise à jour des interfaces
                 updateUEsObligatoiresPanel();
                 updateUEsOptionellesPanel();
+
+
+                // etudiant = etudiantDAO.findById(etudiantId);
+                // System.out.println("#### Étudiant chargé: " + (etudiant != null ? etudiant.getNom() : "NULL"));
+
+                // formation = formationDAO.findFormationByEtudiant(etudiantId);
+                // System.out.println("#### Formation chargée: " + (formation != null ? formation.getNom() : "NULL"));
+
+                // uesInscrites = etudiant.getUes();
+                // System.out.println("#### UEs inscrites: " + (uesInscrites != null ? uesInscrites.size() : "NULL"));
             } else {
                 formationLabel.setText("Non assigné");
             }
@@ -537,6 +548,8 @@ public class EtudiantDashboardPanel extends JPanel {
             JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE
         );
+
+        mainFrame.dispose();
         
         if (confirm == JOptionPane.YES_OPTION) {
             // mainFrame.showLogin();

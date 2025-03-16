@@ -1,5 +1,7 @@
 package sn.uasz.m1.projet.dao;
 
+import java.util.List;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
@@ -7,8 +9,6 @@ import lombok.NoArgsConstructor;
 import sn.uasz.m1.projet.interfaces.GenericService;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.utils.JPAUtil;
-
-import java.util.List;
 
 @NoArgsConstructor
 public class FormationDAO implements GenericService<Formation> {
@@ -83,31 +83,38 @@ public class FormationDAO implements GenericService<Formation> {
 
     @Override
     public Formation findById(Long formationId) {
-        EntityManager em = JPAUtil.getEntityManager();
-        Formation formation = em.find(Formation.class, formationId);
-        em.close();
+        Formation formation;
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            formation = em.find(Formation.class, formationId);
+        }
         return formation;
     }
 
     @Override
     public List<Formation> findAll() {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction transaction = em.getTransaction();
-        transaction.begin();
-        TypedQuery<Formation> query = em.createQuery(
-                "SELECT f FROM Formation f LEFT JOIN FETCH f.ues", Formation.class);
-
-        List<Formation> formations = query.getResultList();
-        transaction.commit();
-        em.close();
+        List<Formation> formations;
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            EntityTransaction transaction = em.getTransaction();
+            transaction.begin();
+            TypedQuery<Formation> query = em.createQuery(
+                    "SELECT f FROM Formation f LEFT JOIN FETCH f.ues", Formation.class);
+            formations = query.getResultList();
+            transaction.commit();
+        }
         return formations;
     }
 
     public Formation findFormationByEtudiant(Long etudiantId) {
-        try (EntityManager em = JPAUtil.getEntityManager();) {
+        // try (EntityManager em = factory.createEntityManager()) {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            // TypedQuery<Formation> query = em.createQuery(
+            //     "SELECT f FROM Formation f JOIN f.ues u JOIN u.etudiants e WHERE e.id = :etudiantId", 
+            //     Formation.class
+            // );
             TypedQuery<Formation> query = em.createQuery(
-                    "SELECT f FROM Formation f JOIN f.ues u JOIN u.etudiants e WHERE e.id = :etudiantId",
-                    Formation.class);
+                "SELECT f FROM Formation f JOIN Etudiant e ON f.id = e.formation.id WHERE e.id = :etudiantId", 
+                Formation.class
+            );
             query.setParameter("etudiantId", etudiantId);
             return query.getResultStream().findFirst().orElse(null);
         }

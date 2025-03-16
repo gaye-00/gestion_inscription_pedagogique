@@ -1,22 +1,8 @@
 package sn.uasz.m1.projet;
 
-import java.time.LocalDate;
-
 import javax.swing.SwingUtilities;
 
-import sn.uasz.m1.projet.dao.EtudiantDAO;
-import sn.uasz.m1.projet.dao.FormationDAO;
-import sn.uasz.m1.projet.dao.UEDAO;
 import sn.uasz.m1.projet.gui.Connexion;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
-import sn.uasz.m1.projet.model.formation.Formation;
-import sn.uasz.m1.projet.model.formation.Niveau;
-import sn.uasz.m1.projet.model.formation.UE;
-import sn.uasz.m1.projet.model.person.Enseignant;
-import sn.uasz.m1.projet.model.person.Etudiant;
-import sn.uasz.m1.projet.model.person.Sexe;
-import sn.uasz.m1.projet.model.person.User;
-import sn.uasz.m1.projet.utils.JPAUtil;
 
 /**
  * Hello world!
@@ -26,10 +12,10 @@ public class App {
     public static void main(String[] args) {
         // Créer et afficher l'interface de connexion
         SwingUtilities.invokeLater(() -> {
-            // Connexion connexion = new Connexion();
-            // connexion.setVisible(true);
-            User user = new User("Al Hamine", "Administrateur");
-            new FenetrePrincipal(user).setVisible(true);
+            Connexion connexion = new Connexion();
+            connexion.setVisible(true);
+            // User user = new User("Al Hamine", "Administrateur");
+            // new FenetrePrincipal(user).setVisible(true);
             // FormationService formationService = new FormationService();
             // UEService ueService = new UEService();
             // EtudiantService etudiantService = new EtudiantService();
@@ -37,6 +23,8 @@ public class App {
             // formationService.getAll().forEach(f -> System.out.println(f));
 
         });
+
+        
         // public static void TestDOnneAPI() {
         // FormationService formationService = new FormationService();
         // UEService ueService = new UEService();

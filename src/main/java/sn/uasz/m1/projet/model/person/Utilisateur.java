@@ -46,4 +46,9 @@ public abstract class Utilisateur {
     private String email;
 
     private String password;
+
+    // Méthode pour récupérer le rôle depuis la colonne "role"
+    public String getRole() {
+        return this.getClass().getSimpleName();  // Récupère le nom de la classe, qui correspond au rôle
+    }
 }

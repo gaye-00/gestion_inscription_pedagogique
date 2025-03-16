@@ -1,201 +1,3 @@
-// package sn.uasz.m1.projet.gui.etudiant;
-
-
-// import java.awt.BorderLayout;
-// import java.awt.Color;
-// import java.awt.Component;
-// import java.awt.FlowLayout;
-// import java.awt.Font;
-// import java.awt.GridBagConstraints;
-// import java.awt.GridBagLayout;
-// import java.awt.Insets;
-// import java.time.LocalDate;
-// import java.util.List;
-// import java.util.Random;
-
-// import javax.swing.ButtonGroup;
-// import javax.swing.JButton;
-// import javax.swing.JComboBox;
-// import javax.swing.JFrame;
-// import javax.swing.JLabel;
-// import javax.swing.JOptionPane;
-// import javax.swing.JPanel;
-// import javax.swing.JRadioButton;
-// import javax.swing.JTextField;
-
-// import org.kordamp.ikonli.materialdesign.MaterialDesign;
-// import org.kordamp.ikonli.swing.FontIcon;
-
-// import jakarta.persistence.EntityManager;
-// import jakarta.persistence.EntityManagerFactory;
-// import jakarta.persistence.Persistence;
-// import jakarta.persistence.TypedQuery;
-// import sn.uasz.m1.projet.model.formation.Formation;
-// import sn.uasz.m1.projet.model.person.Etudiant;
-// import sn.uasz.m1.projet.model.person.Sexe;
-
-// public class FormulaireEtudiant extends JFrame {
-//     private static final Color MAIN_COLOR = new Color(51, 153, 255);
-
-//     private final JTextField prenomField = new JTextField(20);
-//     private final JTextField nomField = new JTextField(20);
-//     private final JRadioButton hommeButton = new JRadioButton("Homme");
-//     private final JRadioButton femmeButton = new JRadioButton("Femme");
-//     private final ButtonGroup sexeGroup = new ButtonGroup();
-//     private final JComboBox<Formation> formationBox = new JComboBox<>();
-    
-//     private final EntityManagerFactory emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
-//     private final EntityManager em = emf.createEntityManager();
-
-//     public FormulaireEtudiant() {
-//         setTitle("Inscription Étudiant - Gestion des inscriptions pédagogiques");
-//         setSize(600, 500);
-//         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-//         setLocationRelativeTo(null);
-//         setLayout(new BorderLayout(10, 10));
-        
-//         JPanel mainPanel = new JPanel(new GridBagLayout());
-//         mainPanel.setBackground(Color.WHITE);
-//         GridBagConstraints gbc = new GridBagConstraints();
-//         gbc.insets = new Insets(10, 10, 10, 10);
-//         gbc.fill = GridBagConstraints.HORIZONTAL;
-        
-//         // Prénom
-//         addField(mainPanel, gbc, "Prénom :", prenomField, 0);
-        
-//         // Nom
-//         addField(mainPanel, gbc, "Nom :", nomField, 1);
-
-//         // Sexe
-//         JPanel sexePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-//         sexeGroup.add(hommeButton);
-//         sexeGroup.add(femmeButton);
-//         sexePanel.add(hommeButton);
-//         sexePanel.add(femmeButton);
-//         addField(mainPanel, gbc, "Sexe :", sexePanel, 2);
-
-//         // Formations disponibles
-//         addField(mainPanel, gbc, "Formation :", formationBox, 3);
-//         chargerFormations();
-
-//         // Bouton Valider
-//         JButton validerButton = new JButton("Valider");
-//         validerButton.setBackground(MAIN_COLOR);
-//         validerButton.setForeground(Color.WHITE);
-//         validerButton.setFont(new Font("Arial", Font.BOLD, 14));
-//         validerButton.setIcon(FontIcon.of(MaterialDesign.MDI_CHECK, 20, Color.WHITE));
-//         validerButton.addActionListener(e -> validerInscription());
-
-//         gbc.gridx = 0;
-//         gbc.gridy = 4;
-//         gbc.gridwidth = 2;
-//         gbc.anchor = GridBagConstraints.CENTER;
-//         mainPanel.add(validerButton, gbc);
-
-//         add(mainPanel, BorderLayout.CENTER);
-//     }
-    
-//     private void addField(JPanel panel, GridBagConstraints gbc, String labelText, Component field, int row) {
-//         gbc.gridx = 0;
-//         gbc.gridy = row;
-//         gbc.weightx = 0.3;
-//         gbc.anchor = GridBagConstraints.LINE_END;
-//         panel.add(new JLabel(labelText), gbc);
-        
-//         gbc.gridx = 1;
-//         gbc.weightx = 0.7;
-//         gbc.anchor = GridBagConstraints.LINE_START;
-//         panel.add(field, gbc);
-//     }
-
-//     private void chargerFormations() {
-//         TypedQuery<Formation> query = em.createQuery("SELECT f FROM Formation f", Formation.class);
-//         List<Formation> formations = query.getResultList();
-//         formationBox.removeAllItems();
-//         for (Formation formation : formations) {
-//             formationBox.addItem(formation);
-//         }
-//     }
-
-//     private void validerInscription() {
-//         if (prenomField.getText().trim().isEmpty() || 
-//             nomField.getText().trim().isEmpty() || 
-//             (!hommeButton.isSelected() && !femmeButton.isSelected()) ||
-//             formationBox.getSelectedItem() == null) {
-//             JOptionPane.showMessageDialog(this, "Veuillez remplir tous les champs", "Erreur", JOptionPane.ERROR_MESSAGE);
-//             return;
-//         }
-
-//         String prenom = prenomField.getText().trim();
-//         String nom = nomField.getText().trim();
-//         Sexe sexe = hommeButton.isSelected() ? Sexe.MASCULIN : Sexe.FEMININ;
-//         Formation formation = (Formation) formationBox.getSelectedItem();
-
-//         String email = genererEmail(prenom, nom);
-//         String password = genererMotDePasse();
-
-//         Etudiant etudiant = new Etudiant();
-//         etudiant.setPrenom(prenom);
-//         etudiant.setNom(nom);
-//         etudiant.setSexe(sexe);
-//         etudiant.setFormation(formation);
-//         etudiant.setEmail(email);
-//         etudiant.setPassword(password);
-//         etudiant.setDateNaissance(LocalDate.now()); // TODO! Need to correct
-
-//         try {
-//             em.getTransaction().begin();
-//             em.persist(etudiant);
-//             em.getTransaction().commit();
-
-//             JOptionPane.showMessageDialog(this,
-//                 "Inscription réussie !\nEmail : " + email + "\nMot de passe : " + password,
-//                 "Succès", JOptionPane.INFORMATION_MESSAGE);
-//             dispose();
-
-//         } catch (Exception e) {
-//             e.printStackTrace();
-//             if (em.getTransaction().isActive()) {
-//                 em.getTransaction().rollback();
-//             }
-//             JOptionPane.showMessageDialog(this, "Erreur lors de l'inscription", "Erreur", JOptionPane.ERROR_MESSAGE);
-//         }
-//     }
-
-//     private String genererEmail(String prenom, String nom) {
-//         String emailBase = (prenom + "." + nom).toLowerCase().replaceAll("\\s+", "");
-//         String email = emailBase + "@etu.uasz.sn";
-        
-//         int suffix = 1;
-//         while (emailExiste(email)) {
-//             email = emailBase + suffix + "@etu.uasz.sn";
-//             suffix++;
-//         }
-//         return email;
-//     }
-
-//     private boolean emailExiste(String email) {
-//         TypedQuery<Long> query = em.createQuery("SELECT COUNT(e) FROM Etudiant e WHERE e.email = :email", Long.class);
-//         query.setParameter("email", email);
-//         return query.getSingleResult() > 0;
-//     }
-
-//     private String genererMotDePasse() {
-//         Random random = new Random();
-//         int password = 100000 + random.nextInt(900000); // Génère un entier à 6 chiffres
-//         return String.valueOf(password);
-//     }
-
-//     @Override
-//     public void dispose() {
-//         if (em != null && em.isOpen()) em.close();
-//         if (emf != null && emf.isOpen()) emf.close();
-//         super.dispose();
-//     }
-// }
-
-
-
 package sn.uasz.m1.projet.gui.etudiant;
 
 import java.awt.BorderLayout;
@@ -208,6 +10,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
 import java.util.Random;
 
@@ -234,6 +37,8 @@ import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.Sexe;
 
+import com.github.lgooddatepicker.components.DatePicker;
+
 public class FormulaireEtudiant extends JFrame {
     // Constantes pour le design
     private static final Color PRIMARY_COLOR = new Color(51, 153, 255);
@@ -247,6 +52,8 @@ public class FormulaireEtudiant extends JFrame {
     // Composants du formulaire
     private final JTextField prenomField = new JTextField(20);
     private final JTextField nomField = new JTextField(20);
+    private final JTextField adresseField = new JTextField(20);
+    private final DatePicker dateNaissancePicker = new DatePicker();
     private final JRadioButton hommeButton = new JRadioButton("Homme");
     private final JRadioButton femmeButton = new JRadioButton("Femme");
     private final ButtonGroup sexeGroup = new ButtonGroup();
@@ -362,12 +169,18 @@ public class FormulaireEtudiant extends JFrame {
         // Nom
         addFormField(formPanel, gbc, "Nom :", nomField, 1, MaterialDesign.MDI_ACCOUNT_BOX);
 
+        // Adresse
+        addFormField(formPanel, gbc, "Adresse :", adresseField, 2, MaterialDesign.MDI_HOME);
+
+        // Date de naissance
+        addFormField(formPanel, gbc, "Date de Naissance :", dateNaissancePicker, 3, MaterialDesign.MDI_CALENDAR);
+
         // Sexe
         JPanel sexePanel = createRadioButtonPanel();
-        addFormField(formPanel, gbc, "Sexe :", sexePanel, 2, MaterialDesign.MDI_HUMAN_MALE_FEMALE);
+        addFormField(formPanel, gbc, "Sexe :", sexePanel, 4, MaterialDesign.MDI_HUMAN_MALE_FEMALE);
 
         // Formation
-        addFormField(formPanel, gbc, "Formation :", formationBox, 3, MaterialDesign.MDI_SCHOOL);
+        addFormField(formPanel, gbc, "Formation :", formationBox, 5, MaterialDesign.MDI_SCHOOL);
         chargerFormations();
         
         return formPanel;
@@ -416,6 +229,7 @@ public class FormulaireEtudiant extends JFrame {
         // Styliser les champs texte
         styleTextField(prenomField);
         styleTextField(nomField);
+        styleTextField(adresseField);
         
         // Styliser les boutons radio
         hommeButton.setFont(FIELD_FONT);
@@ -504,6 +318,8 @@ public class FormulaireEtudiant extends JFrame {
         // Validation des champs
         if (prenomField.getText().trim().isEmpty() || 
             nomField.getText().trim().isEmpty() || 
+            adresseField.getText().trim().isEmpty() ||
+            dateNaissancePicker.getDate() == null ||
             (!hommeButton.isSelected() && !femmeButton.isSelected()) ||
             formationBox.getSelectedItem() == null) {
             
@@ -514,6 +330,8 @@ public class FormulaireEtudiant extends JFrame {
         // Récupération des données
         String prenom = prenomField.getText().trim();
         String nom = nomField.getText().trim();
+        String adresse = adresseField.getText().trim();
+        LocalDate dateNaissance = dateNaissancePicker.getDate();
         Sexe sexe = hommeButton.isSelected() ? Sexe.MASCULIN : Sexe.FEMININ;
         Formation formation = ((FormationWrapper)formationBox.getSelectedItem()).getFormation();
 
@@ -529,7 +347,9 @@ public class FormulaireEtudiant extends JFrame {
         etudiant.setFormation(formation);
         etudiant.setEmail(email);
         etudiant.setPassword(password);
-        etudiant.setDateNaissance(LocalDate.now()); // TODO: Ajouter un DatePicker
+        etudiant.setAdresse(adresse);
+        etudiant.setDateNaissance(dateNaissance);
+        etudiant.setIne(genererIne());
 
         // Persistance
         try {
@@ -625,5 +445,11 @@ public class FormulaireEtudiant extends JFrame {
         if (em != null && em.isOpen()) em.close();
         if (emf != null && emf.isOpen()) emf.close();
         super.dispose();
+    }
+
+    public static String genererIne() {
+        int annee = Year.now().getValue(); // Récupère l'année actuelle
+        int randomNumbers = new Random().nextInt(100000); // Génère un nombre aléatoire entre 0 et 99999
+        return String.format("%d%05d", annee, randomNumbers); // Assure que les 5 chiffres sont toujours présents
     }
 }

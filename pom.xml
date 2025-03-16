@@ -13,11 +13,17 @@
   <!-- FIXME change it to the project's website -->
   <url>http://www.example.com</url>
 
-  <properties>
+  <!-- <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
+
+  </properties> -->
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
   </properties>
+
 
   <dependencies>
 
@@ -49,6 +55,12 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <version>7.0.0.Alpha1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.github.lgooddatepicker</groupId>
+        <artifactId>LGoodDatePicker</artifactId>
+        <version>11.2.1</version> <!-- Vérifiez la dernière version -->
     </dependency>
     <!-- Lombok -->
     <!-- <dependency>
