@@ -8,6 +8,8 @@ import sn.uasz.m1.projet.model.person.Etudiant;
 public interface IEtudiantDAO {
     boolean isInscriptionValidee(Long etudiantId);
 
+    boolean validerInscriptionEtudiant(Long etudiantId);
+
     boolean inscrireUEsOptionelles(Long etudiantId, List<Long> selectedUEIds);
 
     /**

@@ -292,11 +292,11 @@ public class EtudiantDashboardPanel extends JPanel {
     
     public void loadEtudiantData(Long etudiantId) {
         try {
+            System.out.println("###### Chargement des données de l'étudiant avec l'ID: " + etudiantId);
             // Chargement des données de l'étudiant
             etudiant = etudiantDAO.findById(etudiantId);
             if (etudiant == null) {
                 JOptionPane.showMessageDialog(this, "Étudiant non trouvé", "Erreur", JOptionPane.ERROR_MESSAGE);
-                // mainFrame.showLogin();
                 new Connexion().setVisible(true);
                 return;
             }

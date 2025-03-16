@@ -17,10 +17,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 
-@EqualsAndHashCode(callSuper = true)
+// @EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = {"ues"})
 @Data
 @Getter
 @Setter
@@ -37,9 +39,14 @@ public class Etudiant extends Utilisateur {
     @JoinColumn(name = "groupe_id")
     private Groupe groupe;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    // @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "etudiant_ue", joinColumns = @JoinColumn(name = "etudiant_id"), inverseJoinColumns = @JoinColumn(name = "ue_id"))
     private Set<UE> ues = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "formation_id")
+    private Formation formation;
 
     // @Default(false)
     private boolean inscriptionValidee;

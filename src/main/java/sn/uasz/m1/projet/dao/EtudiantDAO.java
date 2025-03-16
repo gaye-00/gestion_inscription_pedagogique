@@ -1,6 +1,7 @@
 package sn.uasz.m1.projet.dao;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 import lombok.NoArgsConstructor;
 import sn.uasz.m1.projet.interfaces.GenericService;
@@ -92,6 +93,37 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
                     Boolean.class);
             query.setParameter("etudiantId", etudiantId);
             return query.getSingleResult() != null && query.getSingleResult();
+        }
+    }
+
+    @Override
+    public boolean validerInscriptionEtudiant(Long etudiantId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+
+        try {
+            transaction.begin();
+
+            // Récupérer l'étudiant par son ID
+            Etudiant etudiant = em.find(Etudiant.class, etudiantId);
+
+            if (etudiant != null) {
+                etudiant.setInscriptionValidee(true); // Modifier l'attribut
+                em.merge(etudiant); // Sauvegarder la modification
+                transaction.commit();
+                return true;
+            } else {
+                transaction.rollback(); // Annuler si l'étudiant n'existe pas
+                return false;
+            }
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
         }
     }
 

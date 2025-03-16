@@ -8,6 +8,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,6 +21,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 
 @Data
@@ -42,8 +44,11 @@ public class Formation {
     @Enumerated(EnumType.STRING)
     private Niveau niveau;
 
-    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<UE> ues = new HashSet<>();
+
+    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Etudiant> etudiants = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "responsable_id")
@@ -73,6 +78,16 @@ public class Formation {
     @Override
     public int hashCode() {
         return Objects.hash(id); // Assurez-vous que 'id' est unique et non nul
+    }
+
+    @Override
+    public String toString() {
+        return "Formation{" +
+                "id=" + id +
+                ", nom='" + nom + '\'' +
+                ", responsablePedagogique='"
+                + (responsable != null ? responsable.getNom() : "null") + '\'' +
+                '}';
     }
 
 }

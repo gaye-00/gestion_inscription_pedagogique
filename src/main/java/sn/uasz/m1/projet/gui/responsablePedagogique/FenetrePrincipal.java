@@ -1210,6 +1210,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
             if (selectedRow != -1) {
                 String ueCode = (String) ueTableModel.getValueAt(selectedRow, 0);
                 UE selectedUE = findUEByCode(formationUEs, ueCode);
+                System.out.println("###########" + selectedUE + " Le code est de" + ueCode);
                 if (selectedUE != null) {
                     JDialog modifyDialog = new JDialog((JDialog) dialogRef[0], "Modifier UE", true);
                     modifyDialog.setContentPane(
