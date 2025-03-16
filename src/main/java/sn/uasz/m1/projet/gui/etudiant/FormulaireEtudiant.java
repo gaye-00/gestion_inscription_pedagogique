@@ -29,6 +29,8 @@ import javax.swing.SwingConstants;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 
+import com.github.lgooddatepicker.components.DatePicker;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
@@ -36,8 +38,6 @@ import jakarta.persistence.TypedQuery;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.Sexe;
-
-import com.github.lgooddatepicker.components.DatePicker;
 
 public class FormulaireEtudiant extends JFrame {
     // Constantes pour le design
@@ -357,7 +357,7 @@ public class FormulaireEtudiant extends JFrame {
             em.persist(etudiant);
             em.getTransaction().commit();
 
-            showSuccessDialog("Inscription réussie !\n\nEmail : " + email + "\nMot de passe : " + password);
+            showSuccessDialogWithCopy(email, password);
             dispose();
 
         } catch (Exception e) {
@@ -434,6 +434,71 @@ public class FormulaireEtudiant extends JFrame {
                 "Inscription Réussie", 
                 JOptionPane.INFORMATION_MESSAGE, 
                 FontIcon.of(MaterialDesign.MDI_CHECK_CIRCLE, 24, new Color(0, 150, 0))
+        );
+    }
+
+    /**
+     * Affiche une boîte de dialogue de succès avec des boutons de copie
+     */
+    private void showSuccessDialogWithCopy(String email, String password) {
+        // Création du panneau personnalisé
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Message de succès
+        JLabel successLabel = new JLabel("Inscription réussie !");
+        successLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        gbc.gridwidth = 3;
+        gbc.gridy = 0;
+        panel.add(successLabel, gbc);
+
+        // Email
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Email :"), gbc);
+        
+        JTextField emailField = new JTextField(email);
+        emailField.setEditable(false);
+        gbc.gridx = 1;
+        panel.add(emailField, gbc);
+        
+        JButton copyEmailButton = new JButton(FontIcon.of(MaterialDesign.MDI_CONTENT_COPY, 16));
+        copyEmailButton.setToolTipText("Copier l'email");
+        copyEmailButton.addActionListener(e -> {
+            emailField.selectAll();
+            emailField.copy();
+        });
+        gbc.gridx = 2;
+        panel.add(copyEmailButton, gbc);
+
+        // Mot de passe
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        panel.add(new JLabel("Mot de passe :"), gbc);
+        
+        JTextField passwordField = new JTextField(password);
+        passwordField.setEditable(false);
+        gbc.gridx = 1;
+        panel.add(passwordField, gbc);
+        
+        JButton copyPasswordButton = new JButton(FontIcon.of(MaterialDesign.MDI_CONTENT_COPY, 16));
+        copyPasswordButton.setToolTipText("Copier le mot de passe");
+        copyPasswordButton.addActionListener(e -> {
+            passwordField.selectAll();
+            passwordField.copy();
+        });
+        gbc.gridx = 2;
+        panel.add(copyPasswordButton, gbc);
+
+        // Affichage du dialogue
+        JOptionPane.showMessageDialog(
+            this,
+            panel,
+            "Inscription Réussie",
+            JOptionPane.INFORMATION_MESSAGE,
+            FontIcon.of(MaterialDesign.MDI_CHECK_CIRCLE, 24, new Color(0, 150, 0))
         );
     }
 
