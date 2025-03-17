@@ -1,5 +1,10 @@
 package sn.uasz.m1.projet.dao;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Query;
@@ -13,7 +18,6 @@ import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.utils.JPAUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @NoArgsConstructor
@@ -72,19 +76,21 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
 
     @Override
     public Etudiant findById(Long etudiantId) {
-        EntityManager em = JPAUtil.getEntityManager();
-        Etudiant etudiant = em.find(Etudiant.class, etudiantId);
-        em.close();
-        return etudiant;
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            Etudiant etudiant = em.find(Etudiant.class, etudiantId);
+            em.close();
+            return etudiant;
+        }
     }
 
     @Override
     public List<Etudiant> findAll() {
-        EntityManager em = JPAUtil.getEntityManager();
-        TypedQuery<Etudiant> query = em.createQuery("SELECT e FROM Etudiant e", Etudiant.class);
-        List<Etudiant> etudiants = query.getResultList();
-        em.close();
-        return etudiants;
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            TypedQuery<Etudiant> query = em.createQuery("SELECT e FROM Etudiant e", Etudiant.class);
+            List<Etudiant> etudiants = query.getResultList();
+            em.close();
+            return etudiants;
+        }
     }
 
     @Override

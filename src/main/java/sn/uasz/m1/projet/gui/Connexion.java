@@ -202,7 +202,7 @@ public class Connexion extends JFrame {
         }
 
         Utilisateur utilisateur = verifierCredentials(email, password);
-        System.out.println("#### Role : " + utilisateur.getRole());
+        // System.out.println("#### Role : " + utilisateur.getRole());
         if (utilisateur != null) {
             // Si l'utilisateur est un étudiant
             if ("Etudiant".equals(utilisateur.getRole())) {
@@ -216,7 +216,14 @@ public class Connexion extends JFrame {
                 new FenetrePrincipal(user).setVisible(true);
             }
         } else {
-            showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
+            JOptionPane.showMessageDialog(
+                this,
+                "Nom utilisateur ou mot de passe incorrect",
+                "Erreur d'authentification",
+                JOptionPane.ERROR_MESSAGE,
+                FontIcon.of(MaterialDesign.MDI_ALERT, 20, Color.RED)
+            );
+            // showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
         }
     }
 
@@ -228,7 +235,7 @@ public class Connexion extends JFrame {
             );
             query.setParameter("email", email);
             query.setParameter("password", password);
-            System.out.println("#### Query : " + query.toString());
+            // System.out.println("#### Query : " + query.toString());
             return query.getSingleResult();
         } catch (Exception e) {
             System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());

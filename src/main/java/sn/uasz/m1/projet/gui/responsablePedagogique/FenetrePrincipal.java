@@ -15,9 +15,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,20 +40,18 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableRowSorter;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
+import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dao.UEDAO;
@@ -66,10 +61,9 @@ import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.UeService;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
-import sn.uasz.m1.projet.model.formation.Niveau;
 import sn.uasz.m1.projet.model.formation.UE;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
-import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 import sn.uasz.m1.projet.model.person.User;
 
 public class FenetrePrincipal extends JFrame implements PanelSwitcher {
@@ -85,7 +79,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     private static final String DASHBOARD_PANEL = "Dashboard";
     private static final String NOUVELLE_FORMATION_PANEL = "Nouvelle Formation";
     private static final String NOUVELLE_UE_PANEL = "Nouvelle UE";
-    private static final String NOUVEL_ETUDIANT_PANEL = "Nouvel Étudiant";
+    private static final String NOUVEL_ENSEIGNANT_PANEL = "Nouvel Étudiant";
     private static final String NOUVELLE_INSCRIPTION_PANEL = "Nouvelle Inscription";
     private FormationService formationGUI = new FormationService();
     private UeService UeGUI = new UeService();
@@ -110,8 +104,13 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         sidePanel.setLayout(new GridLayout(9, 1, 5, 5));
         sidePanel.setBackground(new Color(45, 52, 54)); // Couleur foncée
 
-        String[] buttons = { "Dashboard", "Gérer Formations", "Liste Inscriptions", "Gérer Étudiants",
-                "Gérer Groupes", };
+        String[] buttons = { 
+            "Dashboard", 
+            "Gérer Formations", 
+            "Liste Inscriptions", 
+            "Gérer Enseignants",  // Changé de "Gérer Étudiants" à "Gérer Enseignants"
+            "Gérer Groupes" 
+        };
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
@@ -129,12 +128,15 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         JPanel nouvelleUEPanel = createNouvelleUEPanel();
         contentPanel.add(nouvelleUEPanel, NOUVELLE_UE_PANEL);
 
-        JPanel nouvelEtudiantPanel = createNouvelEtudiantPanel();
-        contentPanel.add(nouvelEtudiantPanel, NOUVEL_ETUDIANT_PANEL);
+        JPanel nouvelEnseignantPanel = createNouvelEnseignanttPanel();
+        contentPanel.add(nouvelEnseignantPanel, NOUVEL_ENSEIGNANT_PANEL);
 
         JPanel gererFormationsPanel = formationGUI.createGererFormationsPanel(this, contentPanel, cardLayout,
                 NOUVELLE_FORMATION_PANEL);
         contentPanel.add(gererFormationsPanel, "Gérer Formations");
+
+        // Dans le constructeur de FenetrePrincipal
+        contentPanel.add(createGererEnseignantsPanel(), "Gérer Enseignants");
         // Ajouter les autres panneaux
         for (String btnText : buttons) {
             JButton button = createSidebarButton(btnText);
@@ -145,7 +147,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
                     !btnText.equals(NOUVELLE_FORMATION_PANEL) &&
                     !btnText.equals(NOUVELLE_UE_PANEL) &&
                     !btnText.equals("Gérer Formations") &&
-                    !btnText.equals(NOUVEL_ETUDIANT_PANEL)) {
+                    !btnText.equals("Gérer Enseignants") &&  // Ajoutez cette condition
+                    !btnText.equals(NOUVEL_ENSEIGNANT_PANEL)) {
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
                 panel.add(new JLabel("Page: " + btnText));
@@ -326,12 +329,182 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
 
     // Méthode pour sauvegarder une UE dans la BD
 
-    private JPanel createNouvelEtudiantPanel() {
+    // private JPanel createNouvelEnseignanttPanel() {
+    //     JPanel panel = new JPanel(new BorderLayout());
+    //     panel.setBackground(Color.WHITE);
+
+    //     // Titre
+    //     JLabel titleLabel = new JLabel("Nouvel Enseignant", JLabel.CENTER);
+    //     titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    //     titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+    //     panel.add(titleLabel, BorderLayout.NORTH);
+
+    //     // Formulaire
+    //     JPanel formPanel = new JPanel(new GridBagLayout());
+    //     formPanel.setBackground(Color.WHITE);
+    //     formPanel.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
+
+    //     GridBagConstraints gbc = new GridBagConstraints();
+    //     gbc.fill = GridBagConstraints.HORIZONTAL;
+    //     gbc.insets = new Insets(10, 10, 10, 10);
+
+    //     // Champs du formulaire
+    //     String[] labels = { "INE:", "Nom:", "Prénom:", "Date de naissance:", "Email:" };
+    //     JTextField ineField = new JTextField(20);
+    //     JTextField nomField = new JTextField(20);
+    //     JTextField prenomField = new JTextField(20);
+    //     JTextField dateField = new JTextField("JJ/MM/AAAA", 20);
+    //     JTextField emailField = new JTextField(20);
+
+    //     JComponent[] fields = { ineField, nomField, prenomField, dateField, emailField };
+
+    //     // Ajouter les champs au formulaire
+    //     for (int i = 0; i < labels.length; i++) {
+    //         JLabel label = new JLabel(labels[i]);
+    //         gbc.gridx = 0;
+    //         gbc.gridy = i;
+    //         gbc.gridwidth = 1;
+    //         gbc.weightx = 0.1;
+    //         formPanel.add(label, gbc);
+
+    //         gbc.gridx = 1;
+    //         gbc.weightx = 0.9;
+    //         formPanel.add(fields[i], gbc);
+    //     }
+
+    //     panel.add(formPanel, BorderLayout.CENTER);
+
+    //     // Boutons d'action
+    //     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    //     buttonPanel.setBackground(Color.WHITE);
+    //     buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 60));
+
+    //     JButton annulerButton = new JButton("Annuler");
+    //     JButton enregistrerButton = new JButton("Enregistrer");
+    //     enregistrerButton.setBackground(new Color(46, 204, 113));
+    //     enregistrerButton.setForeground(Color.WHITE);
+
+    //     buttonPanel.add(annulerButton);
+    //     buttonPanel.add(enregistrerButton);
+
+    //     panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    //     // Action du bouton de réinitialisation de date
+    //     dateField.addFocusListener(new java.awt.event.FocusAdapter() {
+    //         public void focusGained(java.awt.event.FocusEvent evt) {
+    //             if (dateField.getText().equals("JJ/MM/AAAA")) {
+    //                 dateField.setText("");
+    //             }
+    //         }
+
+    //         public void focusLost(java.awt.event.FocusEvent evt) {
+    //             if (dateField.getText().isEmpty()) {
+    //                 dateField.setText("JJ/MM/AAAA");
+    //             }
+    //         }
+    //     });
+
+    //     // Action des boutons
+    //     enregistrerButton.addActionListener(e -> {
+    //         if (ineField.getText().isEmpty() || nomField.getText().isEmpty() ||
+    //                 prenomField.getText().isEmpty() || dateField.getText().equals("JJ/MM/AAAA") ||
+    //                 emailField.getText().isEmpty()) {
+
+    //             JOptionPane.showMessageDialog(this,
+    //                     "Veuillez remplir tous les champs obligatoires.",
+    //                     "Erreur", JOptionPane.ERROR_MESSAGE);
+    //             return;
+    //         }
+
+    //         // Valider le format de la date
+    //         String dateText = dateField.getText();
+    //         LocalDate dateNaissance = null;
+
+    //         try {
+    //             // Convertir la chaîne de texte en LocalDate
+    //             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    //             dateNaissance = LocalDate.parse(dateText, formatter);
+    //         } catch (DateTimeParseException ex) {
+    //             JOptionPane.showMessageDialog(this,
+    //                     "Format de date invalide. Veuillez utiliser le format JJ/MM/AAAA.",
+    //                     "Erreur", JOptionPane.ERROR_MESSAGE);
+    //             return;
+    //         }
+
+    //         // Créer un EntityManager à partir de l'EntityManagerFactory
+    //         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
+    //         em = emf.createEntityManager();
+    //         EntityTransaction transaction = null;
+
+    //         try {
+    //             // Démarrer une transaction
+    //             transaction = em.getTransaction();
+    //             transaction.begin();
+
+    //             // Créer un nouvel étudiant avec les données du formulaire
+    //             Etudiant nouvelEtudiant = new Etudiant();
+    //             nouvelEtudiant.setIne(ineField.getText());
+    //             nouvelEtudiant.setNom(nomField.getText());
+    //             nouvelEtudiant.setPrenom(prenomField.getText());
+    //             nouvelEtudiant.setDateNaissance(dateNaissance); // Utiliser l'objet LocalDate
+    //             nouvelEtudiant.setEmail(emailField.getText());
+
+    //             // Initialiser la collection d'UEs
+    //             nouvelEtudiant.setUes(new HashSet<>());
+
+    //             // Persister l'étudiant dans la base de données
+    //             em.persist(nouvelEtudiant);
+
+    //             // Valider la transaction
+    //             transaction.commit();
+
+    //             JOptionPane.showMessageDialog(this,
+    //                     "Étudiant ajouté avec succès!",
+    //                     "Succès", JOptionPane.INFORMATION_MESSAGE);
+
+    //             // Réinitialiser les champs
+    //             ineField.setText("");
+    //             nomField.setText("");
+    //             prenomField.setText("");
+    //             dateField.setText("JJ/MM/AAAA");
+    //             emailField.setText("");
+
+    //             // Revenir au dashboard
+    //             cardLayout.show(contentPanel, DASHBOARD_PANEL);
+
+    //             // Rafraîchir la liste des étudiants si nécessaire
+    //             refreshStudentList();
+
+    //         } catch (Exception ex) {
+    //             // En cas d'erreur, annuler la transaction
+    //             if (transaction != null && transaction.isActive()) {
+    //                 transaction.rollback();
+    //             }
+
+    //             // Afficher un message d'erreur
+    //             JOptionPane.showMessageDialog(this,
+    //                     "Erreur lors de l'ajout de l'étudiant: " + ex.getMessage(),
+    //                     "Erreur", JOptionPane.ERROR_MESSAGE);
+    //             ex.printStackTrace();
+    //         } finally {
+    //             // Fermer l'EntityManager
+    //             em.close();
+    //         }
+    //     });
+
+    //     annulerButton.addActionListener(e -> {
+    //         cardLayout.show(contentPanel, DASHBOARD_PANEL);
+    //     });
+
+    //     return panel;
+    // }
+
+    private JPanel createNouvelEnseignanttPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
         // Titre
-        JLabel titleLabel = new JLabel("Nouvel Étudiant", JLabel.CENTER);
+        JLabel titleLabel = new JLabel("Nouvel Enseignant", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         panel.add(titleLabel, BorderLayout.NORTH);
@@ -346,14 +519,14 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         gbc.insets = new Insets(10, 10, 10, 10);
 
         // Champs du formulaire
-        String[] labels = { "INE:", "Nom:", "Prénom:", "Date de naissance:", "Email:" };
-        JTextField ineField = new JTextField(20);
+        String[] labels = { "Matricule:", "Nom:", "Prénom:", "Email:", "Téléphone:" };
+        JTextField matriculeField = new JTextField(20);
         JTextField nomField = new JTextField(20);
         JTextField prenomField = new JTextField(20);
-        JTextField dateField = new JTextField("JJ/MM/AAAA", 20);
         JTextField emailField = new JTextField(20);
+        JTextField telephoneField = new JTextField(20);
 
-        JComponent[] fields = { ineField, nomField, prenomField, dateField, emailField };
+        JComponent[] fields = { matriculeField, nomField, prenomField, emailField, telephoneField };
 
         // Ajouter les champs au formulaire
         for (int i = 0; i < labels.length; i++) {
@@ -386,26 +559,13 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
 
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Action du bouton de réinitialisation de date
-        dateField.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (dateField.getText().equals("JJ/MM/AAAA")) {
-                    dateField.setText("");
-                }
-            }
-
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (dateField.getText().isEmpty()) {
-                    dateField.setText("JJ/MM/AAAA");
-                }
-            }
-        });
-
         // Action des boutons
         enregistrerButton.addActionListener(e -> {
-            if (ineField.getText().isEmpty() || nomField.getText().isEmpty() ||
-                    prenomField.getText().isEmpty() || dateField.getText().equals("JJ/MM/AAAA") ||
-                    emailField.getText().isEmpty()) {
+            if (matriculeField.getText().isEmpty() || 
+                nomField.getText().isEmpty() ||
+                prenomField.getText().isEmpty() || 
+                emailField.getText().isEmpty() ||
+                telephoneField.getText().isEmpty()) {
 
                 JOptionPane.showMessageDialog(this,
                         "Veuillez remplir tous les champs obligatoires.",
@@ -413,78 +573,47 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
                 return;
             }
 
-            // Valider le format de la date
-            String dateText = dateField.getText();
-            LocalDate dateNaissance = null;
-
-            try {
-                // Convertir la chaîne de texte en LocalDate
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                dateNaissance = LocalDate.parse(dateText, formatter);
-            } catch (DateTimeParseException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Format de date invalide. Veuillez utiliser le format JJ/MM/AAAA.",
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Créer un EntityManager à partir de l'EntityManagerFactory
             emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
             em = emf.createEntityManager();
             EntityTransaction transaction = null;
 
             try {
-                // Démarrer une transaction
                 transaction = em.getTransaction();
                 transaction.begin();
 
-                // Créer un nouvel étudiant avec les données du formulaire
-                Etudiant nouvelEtudiant = new Etudiant();
-                nouvelEtudiant.setIne(ineField.getText());
-                nouvelEtudiant.setNom(nomField.getText());
-                nouvelEtudiant.setPrenom(prenomField.getText());
-                nouvelEtudiant.setDateNaissance(dateNaissance); // Utiliser l'objet LocalDate
-                nouvelEtudiant.setEmail(emailField.getText());
+                Enseignant nouvelEnseignant = new Enseignant();
+                nouvelEnseignant.setMatricule(matriculeField.getText());
+                nouvelEnseignant.setNom(nomField.getText());
+                nouvelEnseignant.setPrenom(prenomField.getText());
+                nouvelEnseignant.setEmail(emailField.getText());
+                nouvelEnseignant.setTelephone(telephoneField.getText());
 
-                // Initialiser la collection d'UEs
-                nouvelEtudiant.setUes(new HashSet<>());
-
-                // Persister l'étudiant dans la base de données
-                em.persist(nouvelEtudiant);
-
-                // Valider la transaction
+                em.persist(nouvelEnseignant);
                 transaction.commit();
 
                 JOptionPane.showMessageDialog(this,
-                        "Étudiant ajouté avec succès!",
+                        "Enseignant ajouté avec succès!",
                         "Succès", JOptionPane.INFORMATION_MESSAGE);
 
                 // Réinitialiser les champs
-                ineField.setText("");
+                matriculeField.setText("");
                 nomField.setText("");
                 prenomField.setText("");
-                dateField.setText("JJ/MM/AAAA");
                 emailField.setText("");
+                telephoneField.setText("");
 
                 // Revenir au dashboard
                 cardLayout.show(contentPanel, DASHBOARD_PANEL);
 
-                // Rafraîchir la liste des étudiants si nécessaire
-                refreshStudentList();
-
             } catch (Exception ex) {
-                // En cas d'erreur, annuler la transaction
                 if (transaction != null && transaction.isActive()) {
                     transaction.rollback();
                 }
-
-                // Afficher un message d'erreur
                 JOptionPane.showMessageDialog(this,
-                        "Erreur lors de l'ajout de l'étudiant: " + ex.getMessage(),
+                        "Erreur lors de l'ajout de l'enseignant: " + ex.getMessage(),
                         "Erreur", JOptionPane.ERROR_MESSAGE);
                 ex.printStackTrace();
             } finally {
-                // Fermer l'EntityManager
                 em.close();
             }
         });
@@ -494,6 +623,129 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         });
 
         return panel;
+    }
+
+    private JPanel createGererEnseignantsPanel() {
+        System.out.println("#### Création du panneau de gestion des enseignants");
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+    
+        // Titre
+        JLabel titleLabel = new JLabel("Gestion des Enseignants", JLabel.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        panel.add(titleLabel, BorderLayout.NORTH);
+    
+        // Tableau des enseignants
+        String[] columns = {"Matricule", "Nom", "Prénom", "Email", "Téléphone"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    
+        JTable table = new JTable(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        panel.add(scrollPane, BorderLayout.CENTER);
+    
+        // Panneau de boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton addButton = new JButton("Ajouter");
+        JButton editButton = new JButton("Modifier");
+        JButton deleteButton = new JButton("Supprimer");
+        JButton refreshButton = new JButton("Actualiser");
+    
+        buttonPanel.add(refreshButton);
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+    
+        // Charger les données
+        refreshTable(model);
+    
+        // Actions des boutons
+        addButton.addActionListener(e -> cardLayout.show(contentPanel, NOUVEL_ENSEIGNANT_PANEL));
+    
+        // editButton.addActionListener(e -> {
+        //     int selectedRow = table.getSelectedRow();
+        //     if (selectedRow >= 0) {
+        //         String matricule = (String) model.getValueAt(selectedRow, 0);
+        //         // Modification
+        //         EnseignantDAO enseignantDAO = new EnseignantDAO();
+        //         Enseignant enseignant = enseignantDAO.findByMatricule(matricule);
+        //     } else {
+        //         JOptionPane.showMessageDialog(this, "Veuillez sélectionner un enseignant");
+        //     }
+        // });
+        
+        editButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                String matricule = (String) model.getValueAt(selectedRow, 0);
+                EnseignantDAO enseignantDAO = new EnseignantDAO();
+                Enseignant enseignant = enseignantDAO.findByMatricule(matricule);
+                if (enseignant != null) {
+                    JDialog modifyDialog = new JDialog(this, "Modifier Enseignant", true);
+                    modifyDialog.setContentPane(createModifierEnseignantPanel(enseignant, modifyDialog, model, selectedRow));
+                    modifyDialog.pack();
+                    modifyDialog.setSize(650, 400);
+                    modifyDialog.setLocationRelativeTo(this);
+                    modifyDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+                    modifyDialog.setVisible(true);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un enseignant");
+            }
+        });
+    
+        deleteButton.addActionListener(e -> {
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow >= 0) {
+                String matricule = (String) model.getValueAt(selectedRow, 0);
+                // Suppression
+                EnseignantDAO enseignantDAO = new EnseignantDAO();
+
+                if(enseignantDAO.deleteByMatricule(matricule)) {
+                    JOptionPane.showMessageDialog(this, "Enseignant supprimé avec succès");
+                    refreshTable(model);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erreur lors de la suppression de l'enseignant");
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un enseignant");
+            }
+        });
+    
+        refreshButton.addActionListener(e -> refreshTable(model));
+    
+        return panel;
+    }
+    
+    private void refreshTable(DefaultTableModel model) {
+        model.setRowCount(0);
+        emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
+        em = emf.createEntityManager();
+    
+        try {
+            TypedQuery<Enseignant> query = em.createQuery(
+                "SELECT e FROM Enseignant e", Enseignant.class);
+            List<Enseignant> enseignants = query.getResultList();
+    
+            for (Enseignant e : enseignants) {
+                model.addRow(new Object[]{
+                    e.getMatricule(),
+                    e.getNom(),
+                    e.getPrenom(),
+                    e.getEmail(),
+                    e.getTelephone()
+                });
+            }
+        } finally {
+            em.close();
+        }
     }
 
     // Méthode pour rafraîchir le tableau de bord
@@ -615,7 +867,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
             actionBtn.setFocusPainted(false);
             actionBtn.addActionListener(e -> {
                 if (action.equals("Nouvel Étudiant")) {
-                    cardLayout.show(contentPanel, NOUVEL_ETUDIANT_PANEL);
+                    cardLayout.show(contentPanel, NOUVEL_ENSEIGNANT_PANEL);
                 } else if (action.equals("Nouvelle Formation")) {
                     cardLayout.show(contentPanel, NOUVELLE_FORMATION_PANEL);
                 } else if (action.equals("Nouvelle UE")) {
@@ -1621,6 +1873,138 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         }
     }
 
+    private JPanel createModifierEnseignantPanel(Enseignant enseignant, JDialog parentDialog, DefaultTableModel tableModel, int rowIndex) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+    
+        // Titre avec dégradé
+        JPanel titlePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(70, 130, 180),
+                        getWidth(), 0, new Color(100, 149, 237));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        titlePanel.setLayout(new BorderLayout());
+        titlePanel.setPreferredSize(new Dimension(titlePanel.getPreferredSize().width, 60));
+    
+        JLabel titleLabel = new JLabel("Modifier Enseignant", JLabel.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        panel.add(titlePanel, BorderLayout.NORTH);
+    
+        // Formulaire
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10);
+    
+        // Champs du formulaire
+        String[] labels = {"Matricule:", "Nom:", "Prénom:", "Email:", "Téléphone:"};
+        JTextField matriculeField = new JTextField(enseignant.getMatricule(), 20);
+        JTextField nomField = new JTextField(enseignant.getNom(), 20);
+        JTextField prenomField = new JTextField(enseignant.getPrenom(), 20);
+        JTextField emailField = new JTextField(enseignant.getEmail(), 20);
+        JTextField telephoneField = new JTextField(enseignant.getTelephone(), 20);
+    
+        // Rendre le champ matricule non éditable car c'est un identifiant
+        matriculeField.setEnabled(false);
+        matriculeField.setBackground(new Color(240, 240, 240));
+    
+        JComponent[] fields = {matriculeField, nomField, prenomField, emailField, telephoneField};
+    
+        // Ajouter les champs au formulaire
+        for (int i = 0; i < labels.length; i++) {
+            JLabel label = new JLabel(labels[i]);
+            label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            gbc.gridwidth = 1;
+            gbc.weightx = 0.1;
+            formPanel.add(label, gbc);
+            gbc.gridx = 1;
+            gbc.weightx = 0.9;
+            formPanel.add(fields[i], gbc);
+        }
+        panel.add(formPanel, BorderLayout.CENTER);
+    
+        // Boutons d'action
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(240, 240, 240));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    
+        JButton annulerButton = createStyledButton("Annuler", new Color(120, 120, 120));
+        JButton enregistrerButton = createStyledButton("Enregistrer", new Color(46, 204, 113));
+    
+        buttonPanel.add(annulerButton);
+        buttonPanel.add(enregistrerButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+    
+        // Action des boutons
+        enregistrerButton.addActionListener(e -> {
+            if (nomField.getText().isEmpty() || prenomField.getText().isEmpty() || 
+                emailField.getText().isEmpty() || telephoneField.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(parentDialog,
+                        "Veuillez remplir tous les champs obligatoires.",
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            // Mettre à jour l'enseignant
+            enseignant.setNom(nomField.getText());
+            enseignant.setPrenom(prenomField.getText());
+            enseignant.setEmail(emailField.getText());
+            enseignant.setTelephone(telephoneField.getText());
+    
+            // Mettre à jour dans la base de données
+            emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
+            em = emf.createEntityManager();
+            EntityTransaction transaction = null;
+    
+            try {
+                transaction = em.getTransaction();
+                transaction.begin();
+                em.merge(enseignant);
+                transaction.commit();
+    
+                // Mettre à jour la table
+                tableModel.setValueAt(enseignant.getMatricule(), rowIndex, 0);
+                tableModel.setValueAt(enseignant.getNom(), rowIndex, 1);
+                tableModel.setValueAt(enseignant.getPrenom(), rowIndex, 2);
+                tableModel.setValueAt(enseignant.getEmail(), rowIndex, 3);
+                tableModel.setValueAt(enseignant.getTelephone(), rowIndex, 4);
+    
+                JOptionPane.showMessageDialog(parentDialog,
+                        "Enseignant modifié avec succès!",
+                        "Succès", JOptionPane.INFORMATION_MESSAGE);
+    
+                parentDialog.dispose();
+            } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                JOptionPane.showMessageDialog(parentDialog,
+                        "Erreur lors de la modification de l'enseignant: " + ex.getMessage(),
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            } finally {
+                em.close();
+            }
+        });
+    
+        annulerButton.addActionListener(e -> parentDialog.dispose());
+    
+        return panel;
+    }
     /**
      * Création d'un panneau pour modifier une UE existante
      */
