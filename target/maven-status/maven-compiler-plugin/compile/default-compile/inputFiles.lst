@@ -1,27 +1,35 @@
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/utils/JPAUtil.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/formation/Formation.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/User.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/dao/UEDAO.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/ResponsablePedagogique.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/responsablePedagogique/MainFrame.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/formation/Groupe.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/formation/TypeGroupe.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/etudiant/EtudiantLoginPanel.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/formation/UE.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/service/FormationService.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/Enseignant.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/etudiant/EtudiantDashboardPanel.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/interfaces/GenericService.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/service/UEService.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/Utilisateur.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/service/EtudiantService.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/dao/FormationDAO.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/etudiant/MainFrameEtudiant.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/dao/EtudiantDAO.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/etudiant/FormulaireEtudiant.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/Etudiant.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/formation/Niveau.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/model/person/Sexe.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/App.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/gui/Connexion.java
-/home/abdoulaye/Documents/Master1/Programmation avancée/TP/Projet/gestion_inscription_pedagogique-main/src/main/java/sn/uasz/m1/projet/fenetre/GestionPedagogiqueApp.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/service_backup/UEDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/etudiant/MainFrameEtudiant.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/interfacesEcouteur/PanelSwitcher.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/formation/Formation.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/App.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/dao/ResponsableDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/formation/Groupe.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/responsablePedagogique/services/FormationService.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/Utilisateur.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/Etudiant.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/ResponsablePedagogique.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/formation/TypeGroupe.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/interfacesEcouteur/DataReloader.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/interfaces/IEtudiantDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/User.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/dao/EtudiantDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/responsablePedagogique/FenetrePrincipal.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/utils/JPAUtil.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/formation/UE.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/fenetre/GestionPedagogiqueApp.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/service_backup/FormationDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/dto/Etat.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/responsablePedagogique/services/UeService.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/etudiant/EtudiantLoginPanel.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/interfaces/IUE.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/dao/UEDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/etudiant/EtudiantDashboardPanel.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/dao/FormationDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/Enseignant.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/etudiant/FormulaireEtudiant.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/gui/Connexion.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/formation/Niveau.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/model/person/Sexe.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/service_backup/EtudiantDAO.java
+/home/smah/Projet/Acadamic/gestion_inscription_pedagogique/src/main/java/sn/uasz/m1/projet/interfaces/GenericService.java

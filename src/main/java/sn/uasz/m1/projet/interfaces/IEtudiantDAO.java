@@ -3,12 +3,14 @@ package sn.uasz.m1.projet.interfaces;
 import java.util.List;
 
 import sn.uasz.m1.projet.model.formation.Formation;
+import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
 public interface IEtudiantDAO {
     boolean isInscriptionValidee(Long etudiantId);
 
-    boolean validerInscriptionEtudiant(Long etudiantId);
+    boolean validerInscription(Long etudiantId);
+    boolean invaliderInscription(Long etudiantId);
 
     boolean inscrireUEsOptionelles(Long etudiantId, List<Long> selectedUEIds);
 
@@ -23,4 +25,5 @@ public interface IEtudiantDAO {
      *         si aucun étudiant n'est trouvé
      */
     public List<Etudiant> getEtudiantsByFormation(Formation formation);
+    public List<Etudiant> getEtudiantsByUE(UE ue);
 }

@@ -27,6 +27,6 @@ VALUES
 
 SELECT * FROM utilisateur WHERE email = 'abdoulaye.gaye@example.com' AND password = 'password123';
 
-INSERT INTO utilisateur (nom, prenom, dateNaissance, sexe, adresse, email, password, type_utilisateur)
+INSERT INTO utilisateur (nom, prenom, dateNaissance, sexe, adresse, email, password, role)
 VALUES 
 ('Tamba', 'Mbaye', '2004-03-30', 'FEMININ', 'Tamba', 'r', 'r', 'ResponsablePedagogique');

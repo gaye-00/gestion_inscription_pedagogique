@@ -2,6 +2,7 @@ package sn.uasz.m1.projet.dao;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import lombok.NoArgsConstructor;
 import sn.uasz.m1.projet.interfaces.GenericService;
@@ -12,6 +13,7 @@ import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.utils.JPAUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @NoArgsConstructor
@@ -97,7 +99,7 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
     }
 
     @Override
-    public boolean validerInscriptionEtudiant(Long etudiantId) {
+    public boolean validerInscription(Long etudiantId) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction transaction = em.getTransaction();
 
@@ -109,6 +111,37 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
 
             if (etudiant != null) {
                 etudiant.setInscriptionValidee(true); // Modifier l'attribut
+                em.merge(etudiant); // Sauvegarder la modification
+                transaction.commit();
+                return true;
+            } else {
+                transaction.rollback(); // Annuler si l'étudiant n'existe pas
+                return false;
+            }
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public boolean invaliderInscription(Long etudiantId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+
+        try {
+            transaction.begin();
+
+            // Récupérer l'étudiant par son ID
+            Etudiant etudiant = em.find(Etudiant.class, etudiantId);
+
+            if (etudiant != null) {
+                etudiant.setInscriptionValidee(false); // Modifier l'attribut
                 em.merge(etudiant); // Sauvegarder la modification
                 transaction.commit();
                 return true;
@@ -169,9 +202,14 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
         try (EntityManager em = JPAUtil.getEntityManager();) {
             // Requête JPQL pour récupérer les étudiants inscrits à au moins une UE de cette
             // formation
+            // TypedQuery<Etudiant> query = em.createQuery(
+            // "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation =
+            // :formation",
+            // Etudiant.class);
             TypedQuery<Etudiant> query = em.createQuery(
-                    "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation = :formation",
+                    "SELECT e FROM Etudiant e WHERE e.formation = :formation",
                     Etudiant.class);
+
             query.setParameter("formation", formation);
 
             return query.getResultList();
@@ -181,6 +219,33 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
             return new ArrayList<>();
         }
 
+    }
+
+    @Override
+
+    public List<Etudiant> getEtudiantsByUE(UE ue) {
+        if (ue == null) {
+            return Collections.emptyList();
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Query query = em.createNativeQuery(
+                    "SELECT u.* FROM etudiant_ue e " +
+                            "JOIN utilisateur u ON e.etudiant_id = u.id " +
+                            "WHERE e.ue_id = ? AND u.inscriptionValidee = true",
+                    Etudiant.class);
+            query.setParameter(1, ue.getId());
+
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        } finally {
+            if (em != null) {
+                em.close();
+            }
+        }
     }
 
 }

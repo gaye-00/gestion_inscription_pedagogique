@@ -96,7 +96,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         this.currentUser = user;
 
         setTitle("Gestion Pédagogique");
-        setSize(900, 600);
+        setSize(1500, 1600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -191,9 +191,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         gbc.insets = new Insets(10, 10, 10, 10);
 
         // Champs du formulaire
-        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Volume horaire:",
-                "Coefficient:", "Responsable UE:", "Description:", "Caractère de l'UE:" };
-        JTextField codeField = new JTextField(20);
+        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Coefficient:", "Enseigant:", "Caractéristique:" }; JTextField codeField = new JTextField(20);
+        
         JTextField intituleField = new JTextField(20);
 
         // Récupérer la liste des formations depuis la base de données
@@ -222,12 +221,13 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         JSpinner volumeHoraireSpinner = new JSpinner(volumeHoraireModel);
 
         SpinnerModel coefficientModel = new SpinnerNumberModel(1.0, 0.5, 5.0, 0.5);
+        
         JSpinner coefficientSpinner = new JSpinner(coefficientModel);
 
-        JTextField responsableField = new JTextField(20);
+        JTextField responsableField = new JTextField("TestResponsable",20);
 
-        JTextArea descriptionArea = new JTextArea(5, 20);
-        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+        
+        
 
         // Boutons radio pour le caractère de l'UE
         JRadioButton obligatoireRadio = new JRadioButton("Obligatoire", true);
@@ -241,7 +241,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
 
         JComponent[] fields = {
                 codeField, intituleField, formationComboBox, creditSpinner,
-                volumeHoraireSpinner, coefficientSpinner, responsableField, scrollPane, caracterePanel
+                volumeHoraireSpinner, coefficientSpinner, responsableField, caracterePanel
         };
 
         // Ajouter les champs au formulaire
@@ -309,7 +309,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
             volumeHoraireSpinner.setValue(30);
             coefficientSpinner.setValue(1.0);
             responsableField.setText("");
-            descriptionArea.setText("");
+            // descriptionArea.setText("");
             obligatoireRadio.setSelected(true);
 
             cardLayout.show(contentPanel, DASHBOARD_PANEL);
