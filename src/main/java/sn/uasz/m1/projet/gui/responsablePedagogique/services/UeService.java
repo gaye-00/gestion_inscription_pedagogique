@@ -65,13 +65,12 @@ import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dao.UEDAO;
 import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
-import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService.StatusRenderer;
+
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
-import sn.uasz.m1.projet.model.person.Enseignant;
 
 public class UeService {
     private final ResponsableDAO responsableDAO = new ResponsableDAO();

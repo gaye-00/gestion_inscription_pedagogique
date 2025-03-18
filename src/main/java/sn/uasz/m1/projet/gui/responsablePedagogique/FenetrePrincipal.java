@@ -21,8 +21,8 @@ import jakarta.persistence.Persistence;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dto.Etat;
 import sn.uasz.m1.projet.gui.Connexion;
-import sn.uasz.m1.projet.gui.responsablePedagogique.services.EnseignantService;
-import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService;
+import sn.uasz.m1.projet.gui.responsablePedagogique.services.EnseignantGUI;
+import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationGUI;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.UeService;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.person.User;
@@ -45,8 +45,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     private static final String NOUVELLE_UE_PANEL = "Nouvelle UE";
     private static final String NOUVEL_ENSEIGNANT_PANEL = "Nouveau Enseigant";
     private static final String NOUVELLE_INSCRIPTION_PANEL = "Nouvelle Inscription";
-    private FormationService formationGUI = new FormationService();
-    private EnseignantService enseignantGUI = new EnseignantService();
+    private FormationGUI formationGUI = new FormationGUI();
+    private EnseignantGUI enseignantGUI = new EnseignantGUI();
     private UeService UeGUI = new UeService();
 
     private EntityManagerFactory emf = null;

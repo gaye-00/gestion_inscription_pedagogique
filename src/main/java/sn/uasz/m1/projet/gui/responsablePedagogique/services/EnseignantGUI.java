@@ -50,7 +50,7 @@ import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
-public class EnseignantService {
+public class EnseignantGUI {
     private final ResponsableDAO responsableDAO;
     private final FormationDAO formationService;
     private final EtudiantDAO etudiantService;
@@ -65,7 +65,7 @@ public class EnseignantService {
     private DefaultTableModel tableModel;
     private final String[] columnNames = { "Matricule", "Prenom", "Nom", "email", "telephone" };
 
-    public EnseignantService() {
+    public EnseignantGUI() {
         this.responsableDAO = new ResponsableDAO();
         this.formationService = new FormationDAO();
         this.enseignantService = new EnseignantDAO();
