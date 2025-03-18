@@ -21,27 +21,24 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.Timer;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
+import javax.swing.RowFilter;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
+
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 import sn.uasz.m1.projet.dao.EnseignantDAO;
@@ -50,11 +47,8 @@ import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
-import sn.uasz.m1.projet.model.formation.Formation;
-import sn.uasz.m1.projet.model.formation.Niveau;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
-import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 
 public class EnseignantService {
     private final ResponsableDAO responsableDAO;
@@ -190,18 +184,30 @@ public class EnseignantService {
         return panel;
     }
 
-    
     public JPanel createGererEnseignantsPanel(FenetrePrincipal parent, JPanel contentPanel, CardLayout cardLayout,
             String NOUVEL_ENSEIGNANT_PANEL) {
-        System.out.println("#### Création du panneau de gestion des enseignants");
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
+        panel.setBackground(BACKGROUND_COLOR);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Titre
-        JLabel titleLabel = new JLabel("Gestion des Enseignants", JLabel.CENTER);
+        System.out.println("#### Création du panneau de gestion des enseignants");
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(Color.WHITE);
+        centerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)));
+
+        // Create a more attractive title panel
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(PRIMARY_COLOR);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+
+        JLabel titleLabel = new JLabel("Gérer les Enseignants", JLabel.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        panel.add(titleLabel, BorderLayout.NORTH);
+        titleLabel.setForeground(Color.WHITE);
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+
+        panel.add(titlePanel, BorderLayout.NORTH);
 
         // Tableau des enseignants
         String[] columns = { "Matricule", "Nom", "Prénom", "Email", "Téléphone" };
@@ -213,8 +219,96 @@ public class EnseignantService {
         };
 
         JTable table = new JTable(model);
+        // Better table styling
+        table.setRowHeight(30);
+        table.setIntercellSpacing(new Dimension(5, 5));
+        table.setShowGrid(true);
+        table.setGridColor(new Color(230, 230, 230));
+        table.setSelectionBackground(PRIMARY_COLOR);
+        table.setSelectionForeground(Color.WHITE);
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(220, 220, 220));
+        table.getTableHeader().setForeground(TEXT_COLOR);
+        table.setFont(new Font("Arial", Font.PLAIN, 13));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setFillsViewportHeight(true);
+
+        // Ajouter un TableRowSorter pour le filtrage
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
+
+        // Enhanced search panel
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.X_AXIS));
+        searchPanel.setBackground(Color.WHITE);
+        searchPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
+                BorderFactory.createEmptyBorder(10, 5, 10, 5)));
+
+        JLabel searchLabel = new JLabel("Rechercher:");
+        searchLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+
+        JTextField searchField = new JTextField(20);
+        searchField.setMaximumSize(new Dimension(250, 30));
+        // Style text field
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR),
+                BorderFactory.createEmptyBorder(5, 7, 5, 7)));
+
+        JLabel inLabel = new JLabel(" dans ");
+        inLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        inLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+        String[] columnNames = { "Matricule", "Prenom", "Nom", "email", "telephone" };
+
+        JComboBox<String> searchColumnCombo = new JComboBox<>(columnNames);
+        searchColumnCombo.setMaximumSize(new Dimension(150, 30));
+        searchColumnCombo.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        searchPanel.add(Box.createHorizontalStrut(5));
+        searchPanel.add(searchLabel);
+        searchPanel.add(searchField);
+        searchPanel.add(inLabel);
+        searchPanel.add(searchColumnCombo);
+        searchPanel.add(Box.createHorizontalGlue());
+
+        // Ajouter un DocumentListener pour le champ de recherche
+        // Ajouter un DocumentListener pour le champ de recherche
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                updateFilter();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                updateFilter();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                updateFilter();
+            }
+
+            private void updateFilter() {
+                String text = searchField.getText();
+                int columnIndex = searchColumnCombo.getSelectedIndex();
+
+                if (text.trim().length() == 0) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, columnIndex));
+                }
+            }
+        });
+        // Ajouter le panneau de recherche en haut du panneau central
+        centerPanel.add(searchPanel, BorderLayout.NORTH);
+
         JScrollPane scrollPane = new JScrollPane(table);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(centerPanel, BorderLayout.CENTER);
 
         // Panneau de boutons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -223,6 +317,10 @@ public class EnseignantService {
         JButton deleteButton = new JButton("Supprimer");
         JButton refreshButton = new JButton("Actualiser");
 
+        // Style buttons
+        styleButton(refreshButton, new Color(149, 165, 166)); // Gray
+        styleButton(addButton, PRIMARY_COLOR);
+        styleButton(deleteButton, DANGER_COLOR);
         buttonPanel.add(refreshButton);
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
@@ -433,6 +531,34 @@ public class EnseignantService {
                 BorderFactory.createEmptyBorder(5, 7, 5, 7)));
     }
 
+    /**
+     * Fonction pour filtrer la table en fonction du texte de recherche
+     */
+
+    private void filterTable(DefaultTableModel tableModel, JTable etudiantsTable, String searchText,
+            List<Enseignant> enseignants) {
+        tableModel.setRowCount(0); // Réinitialise la table
+        for (Enseignant e : enseignants) {
+            if (e.getNom().toLowerCase().contains(searchText.toLowerCase()) ||
+                    e.getMatricule().toLowerCase().contains(searchText.toLowerCase()) ||
+                    e.getEmail().toLowerCase().contains(searchText.toLowerCase()) ||
+                    e.getTelephone().toLowerCase().contains(searchText.toLowerCase()) ||
+                    e.getPrenom().toLowerCase().contains(searchText.toLowerCase())) {
+
+                tableModel.addRow(new Object[] {
+                        e.getMatricule(),
+                        e.getNom(),
+                        e.getPrenom(),
+                        e.getEmail(),
+                        e.getTelephone()
+                });
+            }
+        
+       
+    }
+
+    }
+
     private void refreshTable(DefaultTableModel model) {
         model.setRowCount(0);
         List<Enseignant> enseignants = enseignantService.findAll();
@@ -491,7 +617,8 @@ public class EnseignantService {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
         return Color.getHSBColor(hsb[0], hsb[1], Math.max(0, hsb[2] - factor));
     }
- // Créer un renderer personnalisé pour les labels de statut
+
+    // Créer un renderer personnalisé pour les labels de statut
     class StatusRenderer extends DefaultTableCellRenderer {
 
         @Override

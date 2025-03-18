@@ -97,7 +97,7 @@ public class UEDAO implements GenericService<UE>, IUE {
             existingUE.setVolumeHoraire(ue.getVolumeHoraire());
             existingUE.setCoefficient(ue.getCoefficient());
             existingUE.setCredits(ue.getCredits());
-            existingUE.setNomResponsable(ue.getNomResponsable());
+            // existingUE.setNomResponsable(ue.getNomResponsable());
             existingUE.setObligatoire(ue.isObligatoire());
 
             // Gérer le changement de formation si nécessaire

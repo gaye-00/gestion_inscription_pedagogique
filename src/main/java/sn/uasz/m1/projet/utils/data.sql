@@ -16,10 +16,17 @@ VALUES
 ('Sow', 'Fatou', '2001-03-30', null, 'FEMININ', 'Ziguinchor', 'fatou.sow@example.com', null, 'password321', 'ResponsablePedagogique'),
 ('Ndoye', 'Cheikh', '1997-07-05', null, 'MASCULIN', 'Kaolack', 'cheikh.ndoye@example.com', null, 'password654', 'ResponsablePedagogique');
 
-INSERT INTO formation (nom, code, nombreOptionsRequis, niveau, responsable_id)
+
+
+INSERT INTO utilisateur (nom, prenom, dateNaissance, ine, sexe, adresse, email, inscriptionValidee, password, role)
 VALUES 
-    ('Licence 3 Informatique', 'L3INFO', 2, 'L3', 5),
-    ('Master 1 Informatique', 'M1INFO', 3, 'M1', 6);
+('r', 'Cheikh', '1997-07-05', null, 'MASCULIN', 'Kaolack', 'cheikh.ndoye@example.com', null, 'r', 'ResponsablePedagogique');
+
+
+INSERT INTO formation (nom, code, nombreOptionsRequis, niveau, responsable_id,maxEffectifGroupe)
+VALUES 
+    ('Licence 3 Informatique', 'L3INFO', 2, 'L3', 5,3),
+    ('Master 1 Informatique', 'M1INFO', 3, 'M1', 6,4);
 
 INSERT INTO enseignant (matricule, nom, prenom, email, telephone)
 VALUES 
@@ -92,3 +99,65 @@ SELECT * FROM utilisateur;
 SELECT * FROM etudiant;
 SELECT * FROM etudiant_ue;
 -- SELECT * FROM responsable_pedagogique;
+
+
+  INSERT INTO
+    ue (
+        code,
+        nom,
+        volumeHoraire,
+        coefficient,
+        credits,
+        formation_id,
+        enseignant_id,
+        obligatoire
+    )
+VALUES (
+        'INFO101',
+        'Algorithmique Avancée',
+        60,
+        1.5,
+        6,
+        9,
+        1,
+        true
+    ),
+    (
+        'INFO102',
+        'Bases de Données',
+        45,
+        1.0,
+        4,
+        9,
+        2,
+        true
+    ) ,(
+        'INFO103',
+        'Programmation Web',
+        30,
+        1.0,
+        4,
+        9,
+        2,
+        false
+    ),
+    (
+        'INFO201',
+        'Intelligence Artificielle',
+        60,
+        1.5,
+        6,
+        9,
+        1,
+        true
+    ),
+    (
+        'INFO202',
+        'Big Data',
+        45,
+        1.0,
+        4,
+        9,
+        2,
+        false
+    );

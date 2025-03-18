@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -21,6 +22,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
 
@@ -38,8 +40,10 @@ public class Formation {
     private Long id;
 
     private String nom;
+    @Column(unique = true)
     private String code;
     private Integer nombreOptionsRequis;
+    private Integer maxEffectifGroupe;
 
     @Enumerated(EnumType.STRING)
     private Niveau niveau;
@@ -53,6 +57,9 @@ public class Formation {
     @ManyToOne
     @JoinColumn(name = "responsable_id")
     private ResponsablePedagogique responsable;
+    @ManyToOne
+    @JoinColumn(name = "responsableFormation_id")
+    private Enseignant responsableFormation;
 
     // Méthodes helper
     public void addUE(UE ue) {

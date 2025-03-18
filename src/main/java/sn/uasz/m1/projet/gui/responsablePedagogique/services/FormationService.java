@@ -34,11 +34,14 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
@@ -53,6 +56,7 @@ import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 import org.w3c.dom.events.MouseEvent;
 
+import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
@@ -61,13 +65,17 @@ import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Niveau;
 import sn.uasz.m1.projet.model.formation.UE;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
+import sn.uasz.m1.projet.model.person.Enseignant;
+import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class FormationService {
     private final ResponsableDAO responsableDAO;
     private final FormationDAO formationService;
     private final EtudiantDAO etudiantService;
+    private final EnseignantDAO enseignantDAO;
     private final UeService ueService;
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
@@ -75,15 +83,26 @@ public class FormationService {
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+    private final String[] columnNamesFormation = { "Code", "Intitulé", "Niveau", "Responsable", "EmailResp",
+            "Nb_ue_otionnel",
+            "Max_Effectif_Groupe" };
+    private DefaultTableModel tableModel;
 
     public FormationService() {
         this.responsableDAO = new ResponsableDAO();
+        this.enseignantDAO = new EnseignantDAO();
         this.formationService = new FormationDAO();
         this.etudiantService = new EtudiantDAO();
         this.ueService = new UeService();
+        tableModel = new DefaultTableModel(columnNamesFormation, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Rendre les cellules non modifiables
+            }
+        };
     }
 
-    public JPanel createNouvelleFormationPanel(FenetrePrincipal parent, PanelSwitcher panelSwitcher,
+    public JPanel createNouvelleFormationPanel(Utilisateur user, FenetrePrincipal parent, PanelSwitcher panelSwitcher,
             String DASHBOARD_PANEL) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
@@ -93,6 +112,12 @@ public class FormationService {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         panel.add(titleLabel, BorderLayout.NORTH);
+        SpinnerModel nombreUeOptModel = new SpinnerNumberModel(2, 1, 10, 2);
+        JSpinner nombreUeOptSpinner = new JSpinner(nombreUeOptModel);
+
+        SpinnerModel maxEffectifGroupeModel = new SpinnerNumberModel(10, 5, 50, 5);
+
+        JSpinner maxEffectifGroupeSpinner = new JSpinner(maxEffectifGroupeModel);
 
         // Formulaire
         JPanel formPanel = new JPanel(new GridBagLayout());
@@ -103,19 +128,19 @@ public class FormationService {
         gbc.insets = new Insets(10, 10, 10, 10);
 
         // Champs du formulaire
-        String[] labels = { "Code de formation:", "Intitulé:", "Niveau:", "Responsable pédagogique:" };
+        String[] labels = { "Code de formation:", "Intitulé:", "Niveau:", "nombre d'ue Optionnel",
+                "max Effectif groupe", "Responsable:" };
         JTextField codeField = new JTextField(20);
         JTextField intituleField = new JTextField(20);
-        String[] niveaux = { "Licence", "Master", "Doctorat" };
 
         // Pour le niveau, utiliser les valeurs de l'enum
         JComboBox<Niveau> niveauCombo = new JComboBox<>(Niveau.values());
         // JComboBox<String> niveauCombo = new JComboBox<>(niveaux);
 
         // Récupérer la liste des responsables pédagogiques depuis la base de données
-        List<ResponsablePedagogique> responsables = responsableDAO.findAll();
-        JComboBox<ResponsablePedagogique> respCombo = new JComboBox<>(
-                responsables.toArray(new ResponsablePedagogique[0]));
+        List<Enseignant> responsables = enseignantDAO.findAll();
+        JComboBox<Enseignant> respCombo = new JComboBox<>(
+                responsables.toArray(new Enseignant[0]));
 
         // Personnaliser l'affichage du ComboBox pour les responsables
         respCombo.setRenderer(new DefaultListCellRenderer() {
@@ -123,15 +148,16 @@ public class FormationService {
             public Component getListCellRendererComponent(JList<?> list, Object value,
                     int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof ResponsablePedagogique) {
-                    ResponsablePedagogique resp = (ResponsablePedagogique) value;
+                if (value instanceof Enseignant) {
+                    Enseignant resp = (Enseignant) value;
                     setText(resp.getNom() + " " + resp.getPrenom());
                 }
                 return this;
             }
         });
 
-        JComponent[] fields = { codeField, intituleField, niveauCombo, respCombo };
+        JComponent[] fields = { codeField, intituleField, niveauCombo, nombreUeOptSpinner, maxEffectifGroupeSpinner,
+                respCombo };
 
         // Ajouter les champs au formulaire
         for (int i = 0; i < labels.length; i++) {
@@ -174,8 +200,12 @@ public class FormationService {
             nouvelleFormation.setCode(codeField.getText());
             nouvelleFormation.setNom(intituleField.getText());
             nouvelleFormation.setNiveau((Niveau) niveauCombo.getSelectedItem());
-            nouvelleFormation.setResponsable((ResponsablePedagogique) respCombo.getSelectedItem());
-
+            nouvelleFormation.setResponsableFormation((Enseignant) respCombo.getSelectedItem());
+            nouvelleFormation.setNombreOptionsRequis((int) nombreUeOptSpinner.getValue());
+            nouvelleFormation.setMaxEffectifGroupe((int) maxEffectifGroupeSpinner.getValue());
+            nouvelleFormation.setResponsable((ResponsablePedagogique) user);
+            if (respCombo.getItemCount() > 0 && respCombo.getSelectedItem() != null)
+                nouvelleFormation.setResponsableFormation((Enseignant) respCombo.getSelectedItem());
             // Sauvegarder dans la base de données
             boolean success = formationService.create(nouvelleFormation);
             if (success) {
@@ -200,6 +230,7 @@ public class FormationService {
                     System.out.println("Le JComboBox Responsable est vide.");
                 }
 
+                refreshTable(tableModel);
                 // Revenir au tableau de bord via la méthode fournie
                 panelSwitcher.showPanel(DASHBOARD_PANEL);
             } else {
@@ -217,372 +248,6 @@ public class FormationService {
 
         return panel;
     }
-
-    /**
-     * Récupère les statistiques depuis la base de données
-     * 
-     * @return Un tableau contenant les données pour chaque carte statistique
-     */
-    /*
-     * public JPanel createGererFormationsPanel(FenetrePrincipal parent, JPanel
-     * contentPanel, CardLayout cardLayout,
-     * String NOUVELLE_FORMATION_PANEL) {
-     * JPanel panel = new JPanel(new BorderLayout());
-     * panel.setBackground(Color.WHITE);
-     * 
-     * // Titre
-     * JLabel titleLabel = new JLabel("Gérer les Formations", JLabel.CENTER);
-     * titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-     * titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-     * panel.add(titleLabel, BorderLayout.NORTH);
-     * 
-     * // Panneau central avec tableau et formulaire
-     * JPanel centerPanel = new JPanel(new BorderLayout());
-     * centerPanel.setBackground(Color.WHITE);
-     * centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-     * 
-     * // Modèle de table pour les formations
-     * String[] columnNames = { "Code", "Intitulé", "Niveau", "Description" };
-     * DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
-     * 
-     * @Override
-     * public boolean isCellEditable(int row, int column) {
-     * return false; // Rendre les cellules non modifiables
-     * }
-     * };
-     * 
-     * // Créer le tableau
-     * JTable formationsTable = new JTable(tableModel);
-     * formationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-     * formationsTable.getTableHeader().setReorderingAllowed(false);
-     * 
-     * //
-     * // formationsTable.setFont(new Font("Arial", Font.PLAIN, 14));
-     * // formationsTable.setRowHeight(25);
-     * // formationsTable.getTableHeader().setFont(new Font("Arial", Font.BOLD,
-     * 14));
-     * // formationsTable.getTableHeader().setBackground(new Color(200, 200, 200));
-     * // formationsTable.setFillsViewportHeight(true);
-     * 
-     * formationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-     * formationsTable.setRowHeight(30);
-     * formationsTable.setIntercellSpacing(new Dimension(10, 5));
-     * formationsTable.setShowGrid(false);
-     * formationsTable.setFillsViewportHeight(true);
-     * //
-     * 
-     * // Ajouter un TableRowSorter pour le filtrage
-     * TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
-     * formationsTable.setRowSorter(sorter);
-     * 
-     * // Panneau de recherche
-     * JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-     * searchPanel.setBackground(Color.WHITE);
-     * searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-     * 
-     * JLabel searchLabel = new JLabel("Rechercher:");
-     * JTextField searchField = new JTextField(20);
-     * JComboBox<String> searchColumnCombo = new JComboBox<>(columnNames);
-     * 
-     * searchPanel.add(searchLabel);
-     * searchPanel.add(searchField);
-     * searchPanel.add(new JLabel("dans"));
-     * searchPanel.add(searchColumnCombo);
-     * 
-     * // Ajouter un ActionListener pour le champ de recherche
-     * searchField.getDocument().addDocumentListener(new DocumentListener() {
-     * 
-     * @Override
-     * public void insertUpdate(javax.swing.event.DocumentEvent e) {
-     * updateFilter();
-     * }
-     * 
-     * @Override
-     * public void removeUpdate(javax.swing.event.DocumentEvent e) {
-     * updateFilter();
-     * }
-     * 
-     * @Override
-     * public void changedUpdate(javax.swing.event.DocumentEvent e) {
-     * updateFilter();
-     * }
-     * 
-     * private void updateFilter() {
-     * String text = searchField.getText();
-     * int columnIndex = searchColumnCombo.getSelectedIndex();
-     * 
-     * if (text.trim().length() == 0) {
-     * sorter.setRowFilter(null);
-     * } else {
-     * sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, columnIndex));
-     * }
-     * }
-     * });
-     * 
-     * // Ajouter le panneau de recherche en haut du panneau central
-     * centerPanel.add(searchPanel, BorderLayout.NORTH);
-     * 
-     * // Panneau de défilement pour le tableau
-     * JScrollPane scrollPane = new JScrollPane(formationsTable);
-     * centerPanel.add(scrollPane, BorderLayout.CENTER);
-     * 
-     * // Le reste du code reste inchangé...
-     * // Panneau d'informations et de modifications
-     * JPanel infoPanel = new JPanel(new GridBagLayout());
-     * infoPanel.setBackground(Color.WHITE);
-     * infoPanel.setBorder(BorderFactory.createCompoundBorder(
-     * BorderFactory.createEmptyBorder(10, 0, 0, 0),
-     * BorderFactory.createTitledBorder("Détails de la formation")));
-     * 
-     * GridBagConstraints gbc = new GridBagConstraints();
-     * gbc.fill = GridBagConstraints.HORIZONTAL;
-     * gbc.insets = new Insets(5, 5, 5, 5);
-     * 
-     * // Champs du formulaire de modification
-     * String[] labels = { "Code:", "Intitulé:", "Niveau:", "Description:" };
-     * JTextField codeField = new JTextField(20);
-     * JTextField intituleField = new JTextField(20);
-     * // String[] niveaux = { "Licence", "Master", "Doctorat" };
-     * JComboBox<Niveau> niveauCombo = new JComboBox<>(Niveau.values());
-     * JTextArea descriptionArea = new JTextArea(3, 20);
-     * JScrollPane descScrollPane = new JScrollPane(descriptionArea);
-     * 
-     * JComponent[] fields = { codeField, intituleField, niveauCombo, descScrollPane
-     * };
-     * 
-     * // Ajouter les champs au panneau d'informations
-     * for (int i = 0; i < labels.length; i++) {
-     * JLabel label = new JLabel(labels[i]);
-     * gbc.gridx = 0;
-     * gbc.gridy = i;
-     * gbc.gridwidth = 1;
-     * gbc.weightx = 0.1;
-     * infoPanel.add(label, gbc);
-     * 
-     * gbc.gridx = 1;
-     * gbc.weightx = 0.9;
-     * infoPanel.add(fields[i], gbc);
-     * }
-     * 
-     * // Boutons pour afficher les UE et étudiants inscrits
-     * JPanel relatedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-     * relatedPanel.setBackground(Color.WHITE);
-     * 
-     * JButton listeUEsButton = new JButton("Gerer UEs");
-     * JButton listeEtudiantsButton = new JButton("Liste des Étudiants inscrits");
-     * 
-     * listeUEsButton.setBackground(new Color(52, 152, 219));
-     * listeUEsButton.setForeground(Color.WHITE);
-     * listeEtudiantsButton.setBackground(new Color(52, 152, 219));
-     * listeEtudiantsButton.setForeground(Color.WHITE);
-     * 
-     * relatedPanel.add(listeUEsButton);
-     * relatedPanel.add(listeEtudiantsButton);
-     * 
-     * // État initial des boutons
-     * listeUEsButton.setEnabled(false);
-     * listeEtudiantsButton.setEnabled(false);
-     * 
-     * // Ajouter le panneau de boutons sous le formulaire
-     * gbc.gridx = 0;
-     * gbc.gridy = labels.length;
-     * gbc.gridwidth = 2;
-     * gbc.weightx = 1.0;
-     * infoPanel.add(relatedPanel, gbc);
-     * 
-     * centerPanel.add(infoPanel, BorderLayout.SOUTH);
-     * panel.add(centerPanel, BorderLayout.CENTER);
-     * 
-     * // Le reste du code reste le même
-     * JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-     * buttonPanel.setBackground(Color.WHITE);
-     * buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 20));
-     * 
-     * JButton refreshButton = new JButton("Rafraîchir");
-     * JButton saveButton = new JButton("Enregistrer");
-     * JButton deleteButton = new JButton("Supprimer");
-     * JButton addButton = new JButton("Nouvelle Formation");
-     * 
-     * saveButton.setBackground(new Color(46, 204, 113));
-     * saveButton.setForeground(Color.WHITE);
-     * deleteButton.setBackground(new Color(231, 76, 60));
-     * deleteButton.setForeground(Color.WHITE);
-     * addButton.setBackground(new Color(52, 152, 219));
-     * addButton.setForeground(Color.WHITE);
-     * 
-     * buttonPanel.add(refreshButton);
-     * buttonPanel.add(addButton);
-     * buttonPanel.add(saveButton);
-     * buttonPanel.add(deleteButton);
-     * 
-     * panel.add(buttonPanel, BorderLayout.SOUTH);
-     * 
-     * // État initial des boutons
-     * saveButton.setEnabled(false);
-     * deleteButton.setEnabled(false);
-     * 
-     * // Variables pour garder la trace de la formation sélectionnée
-     * final int[] selectedRow = { -1 };
-     * final Formation[] selectedFormation = { null };
-     * 
-     * // Fonction pour charger les données
-     * Runnable loadData = () -> {
-     * tableModel.setRowCount(0); // Effacer les données existantes
-     * 
-     * // Charger les formations depuis DataStore
-     * List<Formation> formations = formationService.findAll();
-     * // for (Formation formation : DataStore.formationService.getAll()) {
-     * for (Formation formation : formations) {
-     * tableModel.addRow(new Object[] {
-     * formation.getCode(),
-     * formation.getNom(),
-     * formation.getNiveau(),
-     * formation.getNom() // ! formation.getDescription()
-     * });
-     * }
-     * 
-     * // Réinitialiser la sélection
-     * selectedRow[0] = -1;
-     * selectedFormation[0] = null;
-     * saveButton.setEnabled(false);
-     * deleteButton.setEnabled(false);
-     * listeUEsButton.setEnabled(false);
-     * listeEtudiantsButton.setEnabled(false);
-     * 
-     * // Effacer les champs
-     * codeField.setText("");
-     * intituleField.setText("");
-     * if (niveauCombo.getItemCount() > 0) {
-     * niveauCombo.setSelectedIndex(0);
-     * } else {
-     * // Optionnel : gérer le cas où il n'y a pas d'éléments
-     * System.out.println("Le JComboBox Niveau est vide.");
-     * }
-     * 
-     * descriptionArea.setText("");
-     * 
-     * // Réinitialiser le champ de recherche
-     * searchField.setText("");
-     * };
-     * 
-     * // Le reste du code reste le même
-     * // Charger les données initiales
-     * loadData.run();
-     * 
-     * // Écouteur de sélection pour le tableau
-     * formationsTable.getSelectionModel().addListSelectionListener(e -> {
-     * if (!e.getValueIsAdjusting()) {
-     * selectedRow[0] = formationsTable.getSelectedRow();
-     * 
-     * if (selectedRow[0] >= 0) {
-     * // Convertir l'index de la ligne du modèle de vue au modèle de données
-     * int modelRow = formationsTable.convertRowIndexToModel(selectedRow[0]);
-     * String code = tableModel.getValueAt(modelRow, 0).toString();
-     * 
-     * List<Formation> formations = formationService.findAll();
-     * // Trouver la formation correspondante
-     * // for (Formation formation : DataStore.formationService.getAll()) {
-     * for (Formation formation : formations) {
-     * if (formation.getCode().equals(code)) {
-     * selectedFormation[0] = formation;
-     * break;
-     * }
-     * }
-     * 
-     * // Remplir les champs
-     * if (selectedFormation[0] != null) {
-     * codeField.setText(selectedFormation[0].getCode());
-     * intituleField.setText(selectedFormation[0].getNom());
-     * niveauCombo.setSelectedItem(selectedFormation[0].getNiveau());
-     * descriptionArea.setText(selectedFormation[0].getNom()); // !
-     * .getDescription()
-     * 
-     * // Activer les boutons
-     * saveButton.setEnabled(true);
-     * deleteButton.setEnabled(true);
-     * listeUEsButton.setEnabled(true);
-     * listeEtudiantsButton.setEnabled(true);
-     * }
-     * }
-     * }
-     * });
-     * 
-     * // Actions des boutons (comme avant)
-     * refreshButton.addActionListener(e -> loadData.run());
-     * 
-     * addButton.addActionListener(e -> cardLayout.show(contentPanel,
-     * NOUVELLE_FORMATION_PANEL));
-     * 
-     * saveButton.addActionListener(e -> {
-     * if (selectedFormation[0] != null) {
-     * // Vérifier que les champs requis sont remplis
-     * if (codeField.getText().isEmpty() || intituleField.getText().isEmpty()) {
-     * JOptionPane.showMessageDialog(parent,
-     * "Veuillez remplir tous les champs obligatoires.",
-     * "Erreur", JOptionPane.ERROR_MESSAGE);
-     * return;
-     * }
-     * 
-     * // Mettre à jour la formation
-     * 
-     * selectedFormation[0].setCode(codeField.getText());
-     * selectedFormation[0].setNom(intituleField.getText());
-     * selectedFormation[0].setNiveau((Niveau) niveauCombo.getSelectedItem());
-     * // respCombo.getSelectedItem());
-     * 
-     * // Remplacer l'ancienne formation
-     * formationService.update(selectedFormation[0]);
-     * // DataStore.updateFormation(selectedFormation[0], updatedFormation);
-     * 
-     * JOptionPane.showMessageDialog(parent,
-     * "Formation mise à jour avec succès!",
-     * "Succès", JOptionPane.INFORMATION_MESSAGE);
-     * 
-     * // Recharger les données
-     * loadData.run();
-     * }
-     * });
-     * 
-     * deleteButton.addActionListener(e -> {
-     * if (selectedFormation[0] != null) {
-     * int confirm = JOptionPane.showConfirmDialog(parent,
-     * "Êtes-vous sûr de vouloir supprimer cette formation?",
-     * "Confirmation de suppression",
-     * JOptionPane.YES_NO_OPTION);
-     * 
-     * if (confirm == JOptionPane.YES_OPTION) {
-     * // Supprimer la formation
-     * // DataStore.removeFormation(selectedFormation[0]);
-     * formationService.delete(selectedFormation[0].getId());
-     * 
-     * JOptionPane.showMessageDialog(parent,
-     * "Formation supprimée avec succès!",
-     * "Succès", JOptionPane.INFORMATION_MESSAGE);
-     * 
-     * // Recharger les données
-     * loadData.run();
-     * }
-     * }
-     * });
-     * 
-     * // Actions pour les nouveaux boutons
-     * listeUEsButton.addActionListener(e -> {
-     * if (selectedFormation[0] != null) {
-     * ueService.showGestionUE(parent, selectedFormation[0]);
-     * // showUEsList(selectedFormation[0]);
-     * }
-     * });
-     * 
-     * listeEtudiantsButton.addActionListener(e -> {
-     * if (selectedFormation[0] != null) {
-     * showEtudiantsList(parent, selectedFormation[0]);
-     * }
-     * });
-     * 
-     * return panel;
-     * }
-     * 
-     */
 
     public JPanel createGererFormationsPanel(FenetrePrincipal parent, JPanel contentPanel, CardLayout cardLayout,
             String NOUVELLE_FORMATION_PANEL) {
@@ -611,14 +276,7 @@ public class FormationService {
                 BorderFactory.createLineBorder(BORDER_COLOR),
                 BorderFactory.createEmptyBorder(15, 20, 15, 20)));
 
-        // Modèle de table pour les formations
-        String[] columnNames = { "Code", "Intitulé", "Niveau", "Description" };
-        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Rendre les cellules non modifiables
-            }
-        };
+
 
         // Créer le tableau
         JTable formationsTable = new JTable(tableModel);
@@ -666,7 +324,7 @@ public class FormationService {
         inLabel.setFont(new Font("Arial", Font.ITALIC, 14));
         inLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-        JComboBox<String> searchColumnCombo = new JComboBox<>(columnNames);
+        JComboBox<String> searchColumnCombo = new JComboBox<>(columnNamesFormation);
         searchColumnCombo.setMaximumSize(new Dimension(150, 30));
         searchColumnCombo.setFont(new Font("Arial", Font.PLAIN, 14));
 
@@ -728,12 +386,17 @@ public class FormationService {
         gbc.anchor = GridBagConstraints.WEST;
 
         // Champs du formulaire de modification
-        String[] labels = { "Code:", "Intitulé:", "Niveau:", "Description:" };
+        String[] labels = { "Code:", "Intitulé:", "Niveau:", "nombre d'ue Optionnel",
+                "max Effectif groupe", "Responsable:" };
         JTextField codeField = new JTextField(20);
         JTextField intituleField = new JTextField(20);
         JComboBox<Niveau> niveauCombo = new JComboBox<>(Niveau.values());
-        JTextArea descriptionArea = new JTextArea(3, 20);
-        JScrollPane descScrollPane = new JScrollPane(descriptionArea);
+        SpinnerModel nombreUeOptModel = new SpinnerNumberModel(2, 1, 10, 2);
+        JSpinner nombreUeOptSpinner = new JSpinner(nombreUeOptModel);
+
+        SpinnerModel maxEffectifGroupeModel = new SpinnerNumberModel(10, 5, 50, 5);
+
+        JSpinner maxEffectifGroupeSpinner = new JSpinner(maxEffectifGroupeModel);
 
         // Style text fields
         styleTextField(codeField);
@@ -742,13 +405,27 @@ public class FormationService {
         // Style combobox
         niveauCombo.setFont(new Font("Arial", Font.PLAIN, 14));
 
-        // Style text area
-        descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-        descScrollPane.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+        // Récupérer la liste des responsables pédagogiques depuis la base de données
+        List<Enseignant> responsables = enseignantDAO.findAll();
+        JComboBox<Enseignant> respCombo = new JComboBox<>(
+                responsables.toArray(new Enseignant[0]));
 
-        JComponent[] fields = { codeField, intituleField, niveauCombo, descScrollPane };
+        // Personnaliser l'affichage du ComboBox pour les responsables
+        respCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Enseignant) {
+                    Enseignant resp = (Enseignant) value;
+                    setText(resp.getNom() + " " + resp.getPrenom());
+                }
+                return this;
+            }
+        });
+
+        JComponent[] fields = { codeField, intituleField, niveauCombo, nombreUeOptSpinner, maxEffectifGroupeSpinner,
+                respCombo };
 
         // Ajouter les champs au panneau d'informations avec style amélioré
         for (int i = 0; i < labels.length; i++) {
@@ -772,7 +449,7 @@ public class FormationService {
         relatedPanel.setBackground(Color.WHITE);
 
         JButton listeUEsButton = new JButton("Gérer UEs");
-        JButton listeEtudiantsButton = new JButton("Liste des Étudiants inscrits");
+        JButton listeEtudiantsButton = new JButton("Lister Étudiants inscrits");
 
         // Style buttons
         styleButton(listeUEsButton, PRIMARY_COLOR);
@@ -847,14 +524,20 @@ public class FormationService {
             tableModel.setRowCount(0); // Effacer les données existantes
             statusLabel.setText("Chargement des données...");
 
-            // Charger les formations depuis DataStore
+            // Charger les formations 
             List<Formation> formations = formationService.findAll();
             for (Formation formation : formations) {
                 tableModel.addRow(new Object[] {
                         formation.getCode(),
                         formation.getNom(),
                         formation.getNiveau(),
-                        formation.getNom() // ! formation.getDescription()
+                        (formation.getResponsableFormation() != null)
+                                ? formation.getResponsableFormation()
+                                : null,
+                        (formation.getResponsableFormation() != null) ? formation.getResponsableFormation().getEmail()
+                                : null,
+                        formation.getNombreOptionsRequis(),
+                        formation.getMaxEffectifGroupe()
                 });
             }
 
@@ -872,7 +555,11 @@ public class FormationService {
             if (niveauCombo.getItemCount() > 0) {
                 niveauCombo.setSelectedIndex(0);
             }
-            descriptionArea.setText("");
+            if (respCombo.getItemCount() > 0) {
+                respCombo.setSelectedIndex(0);
+            }
+            nombreUeOptSpinner.setValue(2);
+            maxEffectifGroupeSpinner.setValue(10);
 
             // Réinitialiser le champ de recherche
             searchField.setText("");
@@ -909,11 +596,15 @@ public class FormationService {
                         codeField.setText(selectedFormation[0].getCode());
                         intituleField.setText(selectedFormation[0].getNom());
                         niveauCombo.setSelectedItem(selectedFormation[0].getNiveau());
-                        descriptionArea.setText(selectedFormation[0].getNom()); // ! .getDescription()
 
-                        // Activer les boutons
-                        // saveButton.setEnabled(true);
-                        // deleteButton.setEnabled(true);
+                        nombreUeOptSpinner.setValue(selectedFormation[0].getNombreOptionsRequis());
+                        maxEffectifGroupeSpinner.setValue(selectedFormation[0].getMaxEffectifGroupe());
+                        if (selectedFormation[0].getResponsableFormation() != null) {
+                            respCombo.setSelectedItem(selectedFormation[0].getResponsableFormation());
+                        } else {
+                            if (respCombo.getItemCount() > 0)
+                                respCombo.setSelectedIndex(0);
+                        }
                         // Activer les boutons
                         saveButton.setEnabled(true);
                         deleteButton.setEnabled(true);
@@ -941,7 +632,7 @@ public class FormationService {
 
         addButton.addActionListener(e -> {
             // Effet de transition lors du changement de panel
-            statusLabel.setText("Nouvelle formation...");
+            statusLabel.setText("Nouvelle formation");
 
             // Animation de transition
             centerPanel.setVisible(false);
@@ -986,6 +677,12 @@ public class FormationService {
                 selectedFormation[0].setCode(codeField.getText());
                 selectedFormation[0].setNom(intituleField.getText());
                 selectedFormation[0].setNiveau((Niveau) niveauCombo.getSelectedItem());
+                if (respCombo.getItemCount() > 0 && respCombo.getSelectedItem() != null) {
+                    selectedFormation[0].setResponsableFormation((Enseignant) respCombo.getSelectedItem());
+                }
+
+                selectedFormation[0].setNombreOptionsRequis((int) nombreUeOptSpinner.getValue());
+                selectedFormation[0].setMaxEffectifGroupe((int) maxEffectifGroupeSpinner.getValue());
 
                 // Enregistrer les modifications
                 formationService.update(selectedFormation[0]);
@@ -1107,7 +804,7 @@ public class FormationService {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setPreferredSize(new Dimension(130, 30));
+        button.setPreferredSize(new Dimension(200, 30));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Ajouter des effets de survol avec un MouseListener
@@ -1143,7 +840,6 @@ public class FormationService {
         float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
         return Color.getHSBColor(hsb[0], hsb[1], Math.max(0, hsb[2] - factor));
     }
-
 
     public void showEtudiantsList(FenetrePrincipal parent, Formation formation) {
         Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
@@ -1208,9 +904,8 @@ public class FormationService {
         etudiantsPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Configuration de la table avec un modèle personnalisé
-        String[] columnNames = { "INE", "Prénom", "Nom", "Email", "Inscription" }; // Nouvelle colonne
-                                                                                   // "Inscription" avec icône
-                                                                                   // et bouton d'action
+        String[] columnNames = { "INE", "Prénom", "Nom", "Adresse", "DateNaissance", "Email", "Groupe", "Inscription" };
+
         DefaultTableModel etudiantsTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -1258,7 +953,7 @@ public class FormationService {
             // Dans votre code principal:
             for (Etudiant etudiant : formationEtudiants) {
                 // Déterminer le statut d'inscription
-                String status = etudiant.isInscriptionValidee() ? "Validée" : "En Attente";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
 
                 // Ajouter la ligne avec le statut en texte (le renderer s'occupera de
                 // l'affichage)
@@ -1266,14 +961,17 @@ public class FormationService {
                         etudiant.getIne(),
                         etudiant.getPrenom(),
                         etudiant.getNom(),
+                        etudiant.getAdresse(),
+                        etudiant.getDateNaissance(),
                         etudiant.getEmail(),
+                        (etudiant.getGroupe() != null) ? etudiant.getGroupe().getNumero() : "Non Affecté",
                         status
                 });
             }
 
             // Configurer le renderer pour la colonne de statut (supposons que c'est la
             // colonne 4)
-            etudiantsTable.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+            etudiantsTable.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
             // Filtrage en temps réel
             searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -1316,29 +1014,21 @@ public class FormationService {
         etudiantsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 selectedRow[0] = etudiantsTable.getSelectedRow();
-
                 if (selectedRow[0] >= 0) {
-
                     // Convertir l'index de la ligne du modèle de vue au modèle de données
                     int modelRow = etudiantsTable.convertRowIndexToModel(selectedRow[0]);
                     String code = etudiantsTableModel.getValueAt(modelRow, 0).toString();
                     // statusLabel.setText("Etudiant sélectionné: " + code);
                     List<Etudiant> formationEtudiants = etudiantService.getEtudiantsByFormation(formation);
-                    // List<> formations = formationService.findAll();
-                    // Trouver la formation correspondante
                     for (Etudiant etudiant : formationEtudiants) {
                         if (etudiant.getIne().equals(code)) {
                             selectedEtudiant[0] = etudiant;
                             break;
                         }
                     }
-
                     // Remplir les champs
                     if (selectedEtudiant[0] != null && !selectedEtudiant[0].isInscriptionValidee()) {
 
-                        // Activer les boutons
-                        // saveButton.setEnabled(true);
-                        // deleteButton.setEnabled(true);
                         // Activer les boutons
                         saveButton.setEnabled(true);
                         annulerButton.setEnabled(false);
@@ -1353,7 +1043,6 @@ public class FormationService {
 
         saveButton.addActionListener(e -> {
             if (selectedEtudiant[0] != null) {
-
                 // Animation pour le bouton d'enregistrement
                 saveButton.setBackground(new Color(39, 174, 96)); // Vert plus foncé pour l'effet
                 Timer timer = new Timer(300, event -> {
@@ -1361,15 +1050,8 @@ public class FormationService {
                     ((Timer) event.getSource()).stop();
                 });
                 timer.start();
-
-                // Mise à jour du statut
-                // statusLabel.setText("Enregistrement en cours...");
-
-                // Mettre à jour la formation
-
                 // Enregistrer les modifications
                 etudiantService.validerInscription(selectedEtudiant[0].getId());
-
                 // Style pour la boîte de dialogue de succès
                 UIManager.put("OptionPane.background", Color.WHITE);
                 UIManager.put("Panel.background", Color.WHITE);
@@ -1381,10 +1063,6 @@ public class FormationService {
                 JOptionPane.showMessageDialog(parent,
                         "Inscription validée avec succès!",
                         "Succès", JOptionPane.INFORMATION_MESSAGE);
-
-                // Mise à jour du statut et rechargement
-                // statusLabel.setText("Formation mise à jour: " +
-                // selectedFormation[0].getCode());
                 loadData.run();
             }
         });
@@ -1443,14 +1121,16 @@ public class FormationService {
                     etudiant.getIne().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getEmail().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getPrenom().toLowerCase().contains(searchText.toLowerCase())) {
-                String status = etudiant.isInscriptionValidee() ? "Validée✅" : "En Attente❌";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
                 tableModel.addRow(new Object[] {
                         etudiant.getIne(),
                         etudiant.getPrenom(),
                         etudiant.getNom(),
+                        etudiant.getAdresse(),
+                        etudiant.getDateNaissance(),
                         etudiant.getEmail(),
+                        (etudiant.getGroupe() != null) ? etudiant.getGroupe().getNumero() : "Non Affecté",
                         status
-
                 });
             }
             // Configurer le renderer pour la colonne de statut (supposons que c'est la
@@ -1460,27 +1140,46 @@ public class FormationService {
         }
     }
 
+    private void refreshTable(DefaultTableModel tableModel) {
+        tableModel.setRowCount(0);
+        // Charger les formations depuis DataStore
+        List<Formation> formations = formationService.findAll();
+        for (Formation formation : formations) {
+            tableModel.addRow(new Object[] {
+                    formation.getCode(),
+                    formation.getNom(),
+                    formation.getNiveau(),
+                    (formation.getResponsableFormation() != null)
+                            ? formation.getResponsableFormation()
+                            : null,
+                    (formation.getResponsableFormation() != null) ? formation.getResponsableFormation().getEmail()
+                            : null,
+                    formation.getNombreOptionsRequis(),
+                    formation.getMaxEffectifGroupe()
+            });
+        }
+
+    }
+
     // Créer un renderer personnalisé pour les labels de statut
     class StatusRenderer extends DefaultTableCellRenderer {
 
         @Override
-public Component getTableCellRendererComponent(JTable table, Object value,
-        boolean isSelected, boolean hasFocus, int row, int column) {
-    if (value instanceof String) {
-        JLabel label = new JLabel((String) value);
-
-        // Vérifier si la valeur contient "Validée✅"
-        if (((String) value).contains("Validée")) {
-            label.setIcon(FontIcon.of(MaterialDesign.MDI_CHECK_CIRCLE));
-            label.setForeground(SUCCESS_COLOR);
-        } else {
-            label.setIcon(FontIcon.of(MaterialDesign.MDI_CLOSE_CIRCLE));
-            label.setForeground(DANGER_COLOR);
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            if (value instanceof String) {
+                JLabel label = new JLabel((String) value);
+                if (((String) value).contains("Valid")) {
+                    label.setIcon(FontIcon.of(MaterialDesign.MDI_CHECK_CIRCLE));
+                    label.setForeground(SUCCESS_COLOR);
+                } else {
+                    label.setIcon(FontIcon.of(MaterialDesign.MDI_CLOSE_CIRCLE));
+                    label.setForeground(DANGER_COLOR);
+                }
+                return label;
+            }
+            return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         }
-        return label;
-    }
-    return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-}
 
     }
 }

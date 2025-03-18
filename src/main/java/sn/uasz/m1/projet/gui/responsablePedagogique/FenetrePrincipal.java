@@ -3,60 +3,42 @@ package sn.uasz.m1.projet.gui.responsablePedagogique;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
-import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
-import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
-import sn.uasz.m1.projet.dao.UEDAO;
 import sn.uasz.m1.projet.dto.Etat;
 import sn.uasz.m1.projet.gui.Connexion;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.EnseignantService;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.UeService;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
-import sn.uasz.m1.projet.model.formation.Formation;
-import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.User;
+import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     private JPanel contentPanel;
     private JPanel dashboardPanel;
     private CardLayout cardLayout;
-    private final User currentUser;
-    private FormationDAO formationService = new FormationDAO();
-    private UEDAO ueDao = new UEDAO();
+    private final Utilisateur currentUser;
+    // private FormationDAO formationService = new FormationDAO();
+    // private UEDAO ueDao = new UEDAO();
     private ResponsableDAO responsableService = new ResponsableDAO();
 
     // Constante pour le nom du panel dashboard
     private static final String DASHBOARD_PANEL = "Dashboard";
+    private static final String GERER_FORMATION_PANEL = "Gérer Formations";
+    private static final String GERER_ENSEIGNANT_PANEL = "Gérer Enseignants";
     private static final String NOUVELLE_FORMATION_PANEL = "Nouvelle Formation";
     private static final String NOUVELLE_UE_PANEL = "Nouvelle UE";
     private static final String NOUVEL_ENSEIGNANT_PANEL = "Nouveau Enseigant";
@@ -68,7 +50,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     private EntityManagerFactory emf = null;
     private EntityManager em = null;
 
-    public FenetrePrincipal(User user) {
+    public FenetrePrincipal(Utilisateur user) {
         this.currentUser = user;
 
         setTitle("Gestion Pédagogique");
@@ -86,12 +68,12 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         sidePanel.setLayout(new GridLayout(9, 1, 5, 5));
         sidePanel.setBackground(new Color(45, 52, 54)); // Couleur foncée
 
-        String[] buttons = { 
-            "Dashboard", 
-            "Gérer Formations", 
-            "Liste Inscriptions", 
-            "Gérer Enseignants",  // Changé de "Gérer Étudiants" à "Gérer Enseignants"
-            "Gérer Groupes" 
+        String[] buttons = {
+                "Dashboard",
+                "Gérer Formations",
+                "Liste Inscriptions",
+                "Gérer Enseignants", // Changé de "Gérer Étudiants" à "Gérer Enseignants"
+                "Gérer Groupes"
         };
 
         cardLayout = new CardLayout();
@@ -103,23 +85,23 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         contentPanel.add(dashboardPanel, DASHBOARD_PANEL);
 
         // Créer les panneaux de formulaires
-        JPanel nouvelleFormationPanel = formationGUI.createNouvelleFormationPanel(this, this,
-                DASHBOARD_PANEL);
+        JPanel nouvelleFormationPanel = formationGUI.createNouvelleFormationPanel(user,this, this,
+                GERER_FORMATION_PANEL);
         contentPanel.add(nouvelleFormationPanel, NOUVELLE_FORMATION_PANEL);
 
-        JPanel nouvelleUEPanel = createNouvelleUEPanel();
+        JPanel nouvelleUEPanel = UeGUI.createNouvelleUEPanelExterne(this, DASHBOARD_PANEL);
         contentPanel.add(nouvelleUEPanel, NOUVELLE_UE_PANEL);
 
-        JPanel nouvelEnseignantPanel = enseignantGUI.createNouvelEnseignantPanel(this,this, DASHBOARD_PANEL);
+        JPanel nouvelEnseignantPanel = enseignantGUI.createNouvelEnseignantPanel(this, this, NOUVEL_ENSEIGNANT_PANEL);
         contentPanel.add(nouvelEnseignantPanel, NOUVEL_ENSEIGNANT_PANEL);
 
         JPanel gererFormationsPanel = formationGUI.createGererFormationsPanel(this, contentPanel, cardLayout,
                 NOUVELLE_FORMATION_PANEL);
-        contentPanel.add(gererFormationsPanel, "Gérer Formations");
+        contentPanel.add(gererFormationsPanel, GERER_FORMATION_PANEL);
 
         // Dans le constructeur de FenetrePrincipal
         contentPanel.add(enseignantGUI.createGererEnseignantsPanel(this, contentPanel, cardLayout,
-        NOUVEL_ENSEIGNANT_PANEL), "Gérer Enseignants");
+                NOUVEL_ENSEIGNANT_PANEL), GERER_ENSEIGNANT_PANEL);
         // Ajouter les autres panneaux
         for (String btnText : buttons) {
             JButton button = createSidebarButton(btnText);
@@ -130,7 +112,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
                     !btnText.equals(NOUVELLE_FORMATION_PANEL) &&
                     !btnText.equals(NOUVELLE_UE_PANEL) &&
                     !btnText.equals("Gérer Formations") &&
-                    !btnText.equals("Gérer Enseignants") &&  // Ajoutez cette condition
+                    !btnText.equals("Gérer Enseignants") && // Ajoutez cette condition
                     !btnText.equals(NOUVEL_ENSEIGNANT_PANEL)) {
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
@@ -153,158 +135,24 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     @Override
     public void showPanel(String panelName) {
         // dashboardPanel
-        // refreshDashboard();
-        cardLayout.show(contentPanel, panelName);
+        reloadDashboard();
 
+        cardLayout.show(contentPanel, panelName);
     }
 
-    private JPanel createNouvelleUEPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
+    private void reloadDashboard() {
+        // Supprimer l'ancien panneau
+        contentPanel.remove(dashboardPanel);
 
-        // Titre
-        JLabel titleLabel = new JLabel("Nouvelle Unité d'Enseignement", JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        panel.add(titleLabel, BorderLayout.NORTH);
+        // Recréer un nouveau panneau
+        dashboardPanel = createDashboardPanel();
 
-        // Formulaire
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        // Ajouter le nouveau panneau au contentPanel
+        contentPanel.add(dashboardPanel, DASHBOARD_PANEL);
 
-        // Champs du formulaire
-        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Coefficient:", "Enseigant:",
-                "Caractéristique:" };
-        JTextField codeField = new JTextField(20);
-
-        JTextField intituleField = new JTextField(20);
-
-        // Récupérer la liste des formations depuis la base de données
-        List<Formation> formations = formationService.findAll();
-        formationService.findAll();
-        JComboBox<Formation> formationComboBox = new JComboBox<>(formations.toArray(new Formation[0]));
-
-        // Personnaliser l'affichage des formations dans le ComboBox
-        formationComboBox.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
-                    boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof Formation) {
-                    Formation formation = (Formation) value;
-                    setText(formation.getCode() + " - " + formation.getNom());
-                }
-                return this;
-            }
-        });
-
-        SpinnerModel creditModel = new SpinnerNumberModel(3, 1, 30, 1);
-        JSpinner creditSpinner = new JSpinner(creditModel);
-
-        SpinnerModel volumeHoraireModel = new SpinnerNumberModel(30, 5, 100, 5);
-        JSpinner volumeHoraireSpinner = new JSpinner(volumeHoraireModel);
-
-        SpinnerModel coefficientModel = new SpinnerNumberModel(1.0, 0.5, 5.0, 0.5);
-
-        JSpinner coefficientSpinner = new JSpinner(coefficientModel);
-
-        JTextField responsableField = new JTextField("TestResponsable", 20);
-
-        // Boutons radio pour le caractère de l'UE
-        JRadioButton obligatoireRadio = new JRadioButton("Obligatoire", true);
-        JRadioButton optionnelRadio = new JRadioButton("Optionnel");
-        ButtonGroup caractereGroup = new ButtonGroup();
-        caractereGroup.add(obligatoireRadio);
-        caractereGroup.add(optionnelRadio);
-        JPanel caracterePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        caracterePanel.add(obligatoireRadio);
-        caracterePanel.add(optionnelRadio);
-
-        JComponent[] fields = {
-                codeField, intituleField, formationComboBox, creditSpinner,
-                volumeHoraireSpinner, coefficientSpinner, responsableField, caracterePanel
-        };
-
-        // Ajouter les champs au formulaire
-        for (int i = 0; i < labels.length; i++) {
-            JLabel label = new JLabel(labels[i]);
-            gbc.gridx = 0;
-            gbc.gridy = i;
-            gbc.gridwidth = 1;
-            gbc.weightx = 0.1;
-            formPanel.add(label, gbc);
-            gbc.gridx = 1;
-            gbc.weightx = 0.9;
-            formPanel.add(fields[i], gbc);
-        }
-        panel.add(formPanel, BorderLayout.CENTER);
-
-        // Boutons d'action
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 60));
-        JButton annulerButton = new JButton("Annuler");
-        JButton enregistrerButton = new JButton("Enregistrer");
-        enregistrerButton.setBackground(new Color(46, 204, 113));
-        enregistrerButton.setForeground(Color.WHITE);
-        buttonPanel.add(annulerButton);
-        buttonPanel.add(enregistrerButton);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-
-        // Action des boutons
-        enregistrerButton.addActionListener(e -> {
-            if (codeField.getText().isEmpty() || intituleField.getText().isEmpty()
-                    || formationComboBox.getSelectedItem() == null || responsableField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Veuillez remplir tous les champs obligatoires.",
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Formation selectedFormation = (Formation) formationComboBox.getSelectedItem();
-            boolean estObligatoire = obligatoireRadio.isSelected();
-
-            // Créer un nouvel objet UE
-            UE nouvelleUE = new UE();
-            nouvelleUE.setCode(codeField.getText());
-            nouvelleUE.setNom(intituleField.getText());
-            nouvelleUE.setCredits((Integer) creditSpinner.getValue());
-            nouvelleUE.setVolumeHoraire((Integer) volumeHoraireSpinner.getValue());
-            nouvelleUE.setCoefficient((Double) coefficientSpinner.getValue());
-            nouvelleUE.setNomResponsable(responsableField.getText());
-            nouvelleUE.setFormation(selectedFormation);
-            nouvelleUE.setObligatoire(estObligatoire);
-
-            // Sauvegarder dans la base de données
-            ueDao.create(nouvelleUE);
-
-            JOptionPane.showMessageDialog(this,
-                    "Unité d'enseignement créée avec succès!",
-                    "Succès", JOptionPane.INFORMATION_MESSAGE);
-
-            // Réinitialiser les champs
-            codeField.setText("");
-            intituleField.setText("");
-            formationComboBox.setSelectedIndex(0);
-            creditSpinner.setValue(3);
-            volumeHoraireSpinner.setValue(30);
-            coefficientSpinner.setValue(1.0);
-            responsableField.setText("");
-            // descriptionArea.setText("");
-            obligatoireRadio.setSelected(true);
-
-            cardLayout.show(contentPanel, DASHBOARD_PANEL);
-        });
-
-        annulerButton.addActionListener(e -> {
-            cardLayout.show(contentPanel, DASHBOARD_PANEL);
-        });
-
-        return panel;
+        // Rafraîchir l'affichage
+        contentPanel.revalidate();
+        contentPanel.repaint();
     }
 
     private JPanel createDashboardPanel() {
@@ -347,7 +195,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         quickActions.setBackground(Color.WHITE);
         quickActions.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
-        String[] actionBtns = { "Nouvelle Formation", "Nouvelle UE", "Nouvel Étudiant", "Nouvelle Inscription" };
+        String[] actionBtns = { NOUVELLE_FORMATION_PANEL, NOUVELLE_UE_PANEL, NOUVEL_ENSEIGNANT_PANEL,
+                NOUVELLE_INSCRIPTION_PANEL };
 
         for (String action : actionBtns) {
             JButton actionBtn = new JButton(action);
@@ -355,13 +204,13 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
             actionBtn.setForeground(Color.WHITE);
             actionBtn.setFocusPainted(false);
             actionBtn.addActionListener(e -> {
-                if (action.equals("Nouvel Étudiant")) {
+                if (action.equals(NOUVEL_ENSEIGNANT_PANEL)) {
                     cardLayout.show(contentPanel, NOUVEL_ENSEIGNANT_PANEL);
-                } else if (action.equals("Nouvelle Formation")) {
+                } else if (action.equals(NOUVELLE_FORMATION_PANEL)) {
                     cardLayout.show(contentPanel, NOUVELLE_FORMATION_PANEL);
-                } else if (action.equals("Nouvelle UE")) {
+                } else if (action.equals(NOUVELLE_UE_PANEL)) {
                     cardLayout.show(contentPanel, NOUVELLE_UE_PANEL);
-                } else if (action.equals("Nouvelle Inscription")) {
+                } else if (action.equals(NOUVELLE_INSCRIPTION_PANEL)) {
                     cardLayout.show(contentPanel, NOUVELLE_INSCRIPTION_PANEL);
                 }
             });
@@ -486,7 +335,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         userIcon.setForeground(Color.WHITE);
         userIcon.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        JLabel userInfoLabel = new JLabel(currentUser.getUsername() + " (" + currentUser.getRole() + ")");
+        JLabel userInfoLabel = new JLabel(
+                currentUser.getPrenom() + " " + currentUser.getNom() + " (" + currentUser.getEmail() + ")");
         userInfoLabel.setForeground(Color.WHITE);
         userInfoLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 

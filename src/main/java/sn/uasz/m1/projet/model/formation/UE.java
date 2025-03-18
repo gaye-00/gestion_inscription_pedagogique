@@ -44,7 +44,7 @@ public class UE {
     private Integer volumeHoraire;
     private Double coefficient;
     private Integer credits;
-    private String nomResponsable;
+
 
     @ManyToMany(mappedBy = "ues", fetch = FetchType.EAGER)
     private Set<Etudiant> etudiants = new HashSet<>();

@@ -5,6 +5,7 @@ import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,6 +37,13 @@ public class Enseignant {
     private String email;
     private String telephone;
 
-    @OneToMany(mappedBy = "enseignant", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "enseignant", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<UE> ues = new HashSet<>();
+    // public String getIndentity() {
+    //     return this.prenom + " " + this.nom;
+    // }
+    public String toString(){
+        return this.prenom + " " + this.nom;
+        
+    }
 }

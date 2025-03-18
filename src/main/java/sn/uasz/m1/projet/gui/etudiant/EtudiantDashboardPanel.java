@@ -441,7 +441,7 @@ public class EtudiantDashboardPanel extends JPanel {
         // JLabel creditsLabel = new JLabel("Crédits: " + ue.getNombreCredits());
         // JLabel responsableLabel = new JLabel("Resp.: " + ue.getResponsable());
         JLabel creditsLabel = new JLabel("Crédits: " + ue.getCredits());
-        JLabel responsableLabel = new JLabel("Resp.: " + ue.getNomResponsable());
+        JLabel responsableLabel = new JLabel("Resp.: " + ue.getEnseignant());
         
         rightPanel.add(volumeLabel);
         rightPanel.add(coeffLabel);

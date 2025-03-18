@@ -119,79 +119,6 @@ public class Connexion extends JFrame {
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
     }
-
-    // private void seConnecter() {
-    //     String email = emailField.getText();
-    //     String password = new String(passwordField.getPassword());
-
-    //     if (email.isEmpty() || password.isEmpty()) {
-    //         showError("Veuillez remplir tous les champs", "Erreur");
-    //         return;
-    //     }
-
-    //     int result = verifierCredentials(email, password);
-    //     if (result == 2) {
-    //         dispose();
-    //         new MainFrameEtudiant().setVisible(true);
-    //     } else if (result == 1) {
-    //         User user = new User(email, "ResponsablePedagogique");
-    //         dispose();
-    //         new MainFrame(user).setVisible(true);
-    //     } else {
-    //         showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
-    //     }
-    // }
-
-    // private void seConnecter() {
-    //     String email = emailField.getText();
-    //     String password = new String(passwordField.getPassword());
-    
-    //     if (email.isEmpty() || password.isEmpty()) {
-    //         showError("Veuillez remplir tous les champs", "Erreur");
-    //         return;
-    //     }
-    
-    //     Long userId = verifierCredentials(email, password);
-    //     if (userId != null) {
-    //         dispose();
-    //         new MainFrameEtudiant(userId).setVisible(true); // Passe l'ID ici
-    //     } else {
-    //         showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
-    //     }
-    // }    
-
-    // private int verifierCredentials(String email, String password) {
-    //     try {
-    //         TypedQuery<Utilisateur> query = em.createQuery(
-    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-    //             Utilisateur.class
-    //         );
-    //         query.setParameter("email", email);
-    //         query.setParameter("password", password);
-    //         Utilisateur user = query.getSingleResult();
-    //         return "Etudiant".equals(user.getClass().getSimpleName()) ? 2 : 1;
-    //     } catch (Exception e) {
-    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-    //         return 0;
-    //     }
-    // }
-
-    // private Long verifierCredentials(String email, String password) {
-    //     try {
-    //         TypedQuery<Utilisateur> query = em.createQuery(
-    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-    //             Utilisateur.class
-    //         );
-    //         query.setParameter("email", email);
-    //         query.setParameter("password", password);
-    //         Utilisateur user = query.getSingleResult();
-    //         return user.getId(); // Retourne l'ID de l'utilisateur
-    //     } catch (Exception e) {
-    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-    //         return null; // Retourne null en cas d'échec
-    //     }
-    // } 
-    
     private void seConnecter() {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
@@ -211,9 +138,9 @@ public class Connexion extends JFrame {
             }
             // Si l'utilisateur est un responsable pédagogique
             else if ("ResponsablePedagogique".equals(utilisateur.getRole())) {
-                User user = new User(email, "ResponsablePedagogique");
+               
                 dispose();
-                new FenetrePrincipal(user).setVisible(true);
+                new FenetrePrincipal(utilisateur).setVisible(true);
             }
         } else {
             JOptionPane.showMessageDialog(
