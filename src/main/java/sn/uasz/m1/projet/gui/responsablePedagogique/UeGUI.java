@@ -1,4 +1,4 @@
-package sn.uasz.m1.projet.gui.responsablePedagogique.services;
+package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
@@ -64,15 +64,13 @@ import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dao.UEDAO;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
-
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
-public class UeService {
+public class UeGUI {
     private final ResponsableDAO responsableDAO = new ResponsableDAO();
     private FormationDAO formationService = new FormationDAO();
     private UEDAO ueService = new UEDAO();
@@ -86,7 +84,7 @@ public class UeService {
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    public UeService() {
+    public UeGUI() {
 
     }
 

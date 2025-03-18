@@ -1,4 +1,4 @@
-package sn.uasz.m1.projet.gui.responsablePedagogique.services;
+package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -38,7 +38,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import sn.uasz.m1.projet.dao.*;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.*;
 
@@ -53,7 +52,7 @@ public class FormationGUI {
     private final EnseignantDAO enseignantDAO;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    private final UeService ueService;
+    private final UeGUI ueService;
     private final GroupeGUI groupeService;
     private final EtudiantGUI etudiantService;
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
@@ -73,7 +72,7 @@ public class FormationGUI {
         this.enseignantDAO = new EnseignantDAO();
         this.formationDAO = new FormationDAO();
         
-        this.ueService = new UeService();
+        this.ueService = new UeGUI();
         this.etudiantService = new EtudiantGUI();
         this.groupeService = new GroupeGUI();
         tableModel = new DefaultTableModel(columnNamesFormation, 0) {

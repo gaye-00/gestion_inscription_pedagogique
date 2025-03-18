@@ -1,4 +1,4 @@
-package sn.uasz.m1.projet.gui.responsablePedagogique.services;
+package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -55,7 +55,6 @@ import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Niveau;
@@ -72,7 +71,7 @@ public class EtudiantGUI {
     private final EnseignantDAO enseignantDAO;
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    private final UeService ueService;
+    private final UeGUI ueService;
     private final GroupeGUI groupeService;
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
@@ -86,7 +85,7 @@ public class EtudiantGUI {
         this.enseignantDAO = new EnseignantDAO();
         this.formationDAO = new FormationDAO();
         this.etudiantService = new EtudiantDAO();
-        this.ueService = new UeService();
+        this.ueService = new UeGUI();
         this.groupeService = new GroupeGUI();
 
     }

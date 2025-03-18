@@ -1,7 +1,6 @@
-package sn.uasz.m1.projet.gui.responsablePedagogique.services;
+package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -42,20 +41,13 @@ import javax.swing.table.TableRowSorter;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 import sn.uasz.m1.projet.dao.EnseignantDAO;
-import sn.uasz.m1.projet.dao.EtudiantDAO;
-import sn.uasz.m1.projet.dao.FormationDAO;
-import sn.uasz.m1.projet.dao.ResponsableDAO;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.person.Enseignant;
-import sn.uasz.m1.projet.model.person.Etudiant;
 
 public class EnseignantGUI {
-    private final ResponsableDAO responsableDAO;
-    private final FormationDAO formationService;
-    private final EtudiantDAO etudiantService;
+
     private final EnseignantDAO enseignantService;
-    private final UeService ueService;
+    private final UeGUI ueService;
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
     static Color DANGER_COLOR = new Color(231, 76, 60); // Red
@@ -66,11 +58,10 @@ public class EnseignantGUI {
     private final String[] columnNames = { "Matricule", "Prenom", "Nom", "email", "telephone" };
 
     public EnseignantGUI() {
-        this.responsableDAO = new ResponsableDAO();
-        this.formationService = new FormationDAO();
+        
         this.enseignantService = new EnseignantDAO();
-        this.ueService = new UeService();
-        this.etudiantService = new EtudiantDAO();
+        this.ueService = new UeGUI();
+        
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
