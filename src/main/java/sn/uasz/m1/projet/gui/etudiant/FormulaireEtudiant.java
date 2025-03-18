@@ -28,6 +28,7 @@ import javax.swing.SwingConstants;
 
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.github.lgooddatepicker.components.DatePicker;
 
@@ -337,7 +338,10 @@ public class FormulaireEtudiant extends JFrame {
 
         // Génération des identifiants
         String email = genererEmail(prenom, nom);
-        String password = genererMotDePasse();
+        // String password = genererMotDePasse();
+        String plainPassword = genererMotDePasse(); // Stockez le mot de passe en clair pour l'affichage
+        String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt()); // Cryptez le mot de passe
+
 
         // Création de l'étudiant
         Etudiant etudiant = new Etudiant();
@@ -346,7 +350,8 @@ public class FormulaireEtudiant extends JFrame {
         etudiant.setSexe(sexe);
         etudiant.setFormation(formation);
         etudiant.setEmail(email);
-        etudiant.setPassword(password);
+        // etudiant.setPassword(password);
+        etudiant.setPassword(hashedPassword); // Utilisez le mot de passe crypté
         etudiant.setAdresse(adresse);
         etudiant.setDateNaissance(dateNaissance);
         etudiant.setIne(genererIne());
@@ -357,7 +362,9 @@ public class FormulaireEtudiant extends JFrame {
             em.persist(etudiant);
             em.getTransaction().commit();
 
-            showSuccessDialogWithCopy(email, password);
+            // showSuccessDialogWithCopy(email, password);
+            // Utilisez le mot de passe en clair pour l'affichage
+            showSuccessDialogWithCopy(email, plainPassword);
             dispose();
 
         } catch (Exception e) {

@@ -20,6 +20,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
+import org.mindrot.jbcrypt.BCrypt;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -227,22 +228,45 @@ public class Connexion extends JFrame {
         }
     }
 
+    // private Utilisateur verifierCredentials(String email, String password) {
+    //     try {
+    //         TypedQuery<Utilisateur> query = em.createQuery(
+    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
+    //             Utilisateur.class
+    //         );
+    //         query.setParameter("email", email);
+    //         query.setParameter("password", password);
+    //         // System.out.println("#### Query : " + query.toString());
+    //         return query.getSingleResult();
+    //     } catch (Exception e) {
+    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
+    //         return null; // Retourne null si l'utilisateur n'est pas trouvé
+    //     }
+    // }
+
+
     private Utilisateur verifierCredentials(String email, String password) {
         try {
+            // D'abord, récupérer l'utilisateur par email uniquement
             TypedQuery<Utilisateur> query = em.createQuery(
-                "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
+                "SELECT u FROM Utilisateur u WHERE u.email = :email",
                 Utilisateur.class
             );
             query.setParameter("email", email);
-            query.setParameter("password", password);
-            // System.out.println("#### Query : " + query.toString());
-            return query.getSingleResult();
+            
+            Utilisateur utilisateur = query.getSingleResult();
+            
+            // Vérifier si le mot de passe correspond
+            if (utilisateur != null && BCrypt.checkpw(password, utilisateur.getPassword())) {
+                return utilisateur;
+            }
+            
+            return null;
         } catch (Exception e) {
             System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-            return null; // Retourne null si l'utilisateur n'est pas trouvé
+            return null;
         }
     }
-
 
     private void showError(String message, String title) {
         JOptionPane.showMessageDialog(

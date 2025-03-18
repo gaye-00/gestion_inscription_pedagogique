@@ -82,6 +82,13 @@
         <version>6.0.11</version>
     </dependency>
 
+    <!-- Pour le hachage des mots de passse -->
+    <dependency>
+      <groupId>org.mindrot</groupId>
+      <artifactId>jbcrypt</artifactId>
+      <version>0.4</version>
+  </dependency>
+
     <dependency>
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
