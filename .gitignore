@@ -1,4 +1,4 @@
 ./target/
 .vscode/
-
+target/
 src/main/resources/email.properties
