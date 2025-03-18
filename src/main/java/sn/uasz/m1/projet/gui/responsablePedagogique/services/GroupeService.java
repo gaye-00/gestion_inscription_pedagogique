@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -22,33 +23,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingWorker;
-import javax.swing.Timer;
-import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -62,23 +36,26 @@ import org.kordamp.ikonli.swing.FontIcon;
 import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
+import sn.uasz.m1.projet.dao.GroupeDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dao.UEDAO;
 import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService.StatusRenderer;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
+import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.Enseignant;
 
-public class UeService {
+public class GroupeService {
     private final ResponsableDAO responsableDAO = new ResponsableDAO();
     private FormationDAO formationService = new FormationDAO();
     private UEDAO ueService = new UEDAO();
     private EtudiantDAO etudiantService = new EtudiantDAO();
     private EnseignantDAO enseignantDAO = new EnseignantDAO();
+    private final GroupeDAO groupeDAO = new GroupeDAO();
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
     static Color DANGER_COLOR = new Color(231, 76, 60); // Red
@@ -86,308 +63,11 @@ public class UeService {
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
 
-    public UeService() {
+    public GroupeService() {
 
     }
 
-    /**
-     * Affiche l'interface de gestion des UE pour une formation donnée
-     * 
-     * @param formation La formation dont on souhaite gérer les UE
-     */
-    /**
-     * Affiche l'interface de gestion des UE pour une formation donnée
-     * 
-     * @param formation La formation dont on souhaite gérer les UE
-     */
-    public void showGestionUE(FenetrePrincipal parent, Formation formation) {
-        Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
-        Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
-        Color DANGER_COLOR = new Color(231, 76, 60); // Red
-        Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
-        Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
-        Color BORDER_COLOR = new Color(189, 195, 199); // Border color
-        // Création du panneau principal avec une marge intérieure
-        JPanel gestionUEPanel = new JPanel(new BorderLayout(10, 10));
-        gestionUEPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        gestionUEPanel.setBackground(new Color(240, 240, 240));
-
-        // Panneau d'en-tête avec dégradé
-        // JPanel headerPanel = new JPanel();
-        JPanel headerPanel = new JPanel(new BorderLayout(10, 10)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(70, 130, 180),
-                        getWidth(), 0, new Color(100, 149, 237));
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS)); // Utiliser BoxLayout en Y_AXIS
-        // headerPanel.setBackground(new Color(240, 240, 240));
-
-        // Titre avec une police moderne et une couleur claire
-        JLabel titleLabel = new JLabel("Gestion des UE de la formation : " + formation.getNom(), JLabel.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-        // Champ de recherche
-        JPanel searchPanel = new JPanel();
-        searchPanel.setLayout(new FlowLayout(FlowLayout.CENTER)); // Centrer le champ de recherche
-
-        JLabel searchLabel = new JLabel("Rechercher:");
-        searchLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-
-        JTextField searchField = new JTextField(20);
-        searchField.setMaximumSize(new Dimension(250, 30));
-        // Style text field
-        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
-        searchField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BORDER_COLOR),
-                BorderFactory.createEmptyBorder(5, 7, 5, 7)));
-
-        searchField.setPreferredSize(new Dimension(200, 30));
-        // Action de recherche (filtrer la table par exemple)
-
-        // Ajouter le titre et le champ de recherche au panneau d'en-tête
-        headerPanel.add(titleLabel); // Titre en premier
-        headerPanel.add(Box.createVerticalStrut(10)); // Espacement vertical entre le titre et le champ de recherche
-        headerPanel.add(searchPanel); // Champ de recherche en dessous du titre
-        searchPanel.add(searchField);
-
-        gestionUEPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Configuration de la table avec un modèle personnalisé
-        String[] columnNames = { "Code", "Intitulé", "Crédits", "Coefficient", "Volume Horaire", "Enseignant",
-                "Caractéristique" };
-        DefaultTableModel ueTableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Empêche l'édition directe dans la table
-            }
-        };
-
-        JTable ueTable = new JTable(ueTableModel);
-        ueTable.setRowHeight(30);
-        ueTable.setIntercellSpacing(new Dimension(5, 5));
-        ueTable.setShowGrid(true);
-        ueTable.setGridColor(new Color(230, 230, 230));
-        ueTable.setSelectionBackground(PRIMARY_COLOR);
-        ueTable.setSelectionForeground(Color.WHITE);
-        ueTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
-        ueTable.getTableHeader().setBackground(new Color(220, 220, 220));
-        ueTable.getTableHeader().setForeground(TEXT_COLOR);
-        ueTable.setFont(new Font("Arial", Font.PLAIN, 13));
-        ueTable.getTableHeader().setReorderingAllowed(false);
-        ueTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        ueTable.setFillsViewportHeight(true);
-
-        searchField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                String query = searchField.getText().toLowerCase();
-                // Appliquer le filtre à la table en fonction du texte recherché
-                TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(ueTableModel);
-                ueTable.setRowSorter(sorter);
-                sorter.setRowFilter(RowFilter.regexFilter(query));
-            }
-        });
-
-        // Ajouter le champ de recherche à l'en-tête
-        headerPanel.add(searchPanel, BorderLayout.NORTH); // Ajouter à l'est (droite)
-        searchPanel.add(searchLabel);
-        searchPanel.add(searchField);
-
-        gestionUEPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Style d'en-tête de colonne
-        JTableHeader header = ueTable.getTableHeader();
-        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        header.setBackground(new Color(100, 149, 237));
-        header.setForeground(Color.WHITE);
-        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 35));
-
-        // Définir les largeurs de colonnes
-        ueTable.getColumnModel().getColumn(0).setPreferredWidth(80); // Code
-        ueTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Intitulé
-        ueTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Crédits
-        ueTable.getColumnModel().getColumn(3).setPreferredWidth(250); // Description
-        ueTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Caractéristique
-        ueTable.getColumnModel().getColumn(5).setPreferredWidth(150); // Caractéristique
-        ueTable.getColumnModel().getColumn(6).setPreferredWidth(150); // Caractéristique
-
-        // Récupérer les UEs liées à cette formation
-        List<UE> formationUEs = ueService.getUEsByFormation(formation.getId());
-        for (UE ue : formationUEs) {
-            ueTableModel.addRow(new Object[] {
-                    ue.getCode(),
-                    ue.getNom(),
-                    ue.getCredits(),
-                    ue.getCoefficient(),
-                    ue.getVolumeHoraire(),
-                    (ue.getEnseignant() == null) ? "Enseignant Non defini" : ue.getEnseignant(),
-                    // ue.getDescription(), // Utiliser getDescription ici
-                    ue.isObligatoire() ? "obligatoire" : "optionnel"
-            });
-        }
-
-        // Filtrage en temps réel
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                filterTable(ueTableModel, searchField.getText(), formationUEs);
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                filterTable(ueTableModel, searchField.getText(), formationUEs);
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                filterTable(ueTableModel, searchField.getText(), formationUEs);
-            }
-        });
-
-        // Ajouter la table dans un JScrollPane avec style
-        JScrollPane scrollPane = new JScrollPane(ueTable);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        gestionUEPanel.add(scrollPane, BorderLayout.CENTER);
-
-        // Panneau pour les boutons avec dégradé léger
-        JPanel buttonsPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(240, 240, 240),
-                        0, getHeight(), new Color(220, 220, 220));
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        buttonsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // Style des boutons
-        JButton etudButton = createStyledButton("Lister Etudiant", new Color(70, 130, 180));
-        JButton addUEButton = createStyledButton("Ajouter une UE", new Color(46, 139, 87));
-        JButton modifyUEButton = createStyledButton("Modifier UE", new Color(70, 130, 180));
-        JButton deleteUEButton = createStyledButton("Supprimer UE", new Color(178, 34, 34));
-
-        // Référence au dialogue pour pouvoir le fermer après les opérations CRUD
-        JDialog[] dialogRef = new JDialog[1];
-
-        // Ajouter des actions aux boutons
-        addUEButton.addActionListener(e -> {
-            JDialog addDialog = new JDialog((JDialog) dialogRef[0], "Nouvelle UE", true);
-            addDialog.setContentPane(createNouvelleUEPanel(formation, addDialog, ueTableModel));
-            addDialog.pack();
-            addDialog.setSize(1250, 1500);
-            addDialog.setLocationRelativeTo(dialogRef[0]);
-            addDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            addDialog.setVisible(true);
-        });
-
-        etudButton.addActionListener(e -> {
-            int selectedRow = ueTable.getSelectedRow();
-            if (selectedRow != -1) {
-                String ueCode = (String) ueTableModel.getValueAt(selectedRow, 0);
-                UE selectedUE = ueService.findUEByCode(formationUEs, ueCode);
-                if (selectedUE != null) {
-
-                    showEtudiantsList(parent, selectedUE);
-
-                }
-            } else {
-                JOptionPane.showMessageDialog(dialogRef[0],
-                        "Veuillez sélectionner une UE",
-                        "Information", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
-        modifyUEButton.addActionListener(e -> {
-            int selectedRow = ueTable.getSelectedRow();
-            if (selectedRow != -1) {
-                String ueCode = (String) ueTableModel.getValueAt(selectedRow, 0);
-                UE selectedUE = ueService.findUEByCode(formationUEs, ueCode);
-                if (selectedUE != null) {
-                    JDialog modifyDialog = new JDialog((JDialog) dialogRef[0], "Modifier UE", true);
-                    modifyDialog.setContentPane(
-                            createModifierUEPanel(selectedUE, formation, modifyDialog, ueTableModel, selectedRow));
-                    modifyDialog.pack();
-                    modifyDialog.setSize(650, 500);
-                    modifyDialog.setLocationRelativeTo(dialogRef[0]);
-                    modifyDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    modifyDialog.setVisible(true);
-                }
-            } else {
-                JOptionPane.showMessageDialog(dialogRef[0],
-                        "Veuillez sélectionner une UE à modifier",
-                        "Information", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
-        deleteUEButton.addActionListener(e -> {
-            int selectedRow = ueTable.getSelectedRow();
-            if (selectedRow != -1) {
-                String ueCode = (String) ueTableModel.getValueAt(selectedRow, 0);
-                UE selectedUE = ueService.findUEByCode(formationUEs, ueCode);
-                if (selectedUE != null) {
-                    if (selectedUE.isObligatoire()) {
-                        JOptionPane.showMessageDialog(null, "Impossible de supprier cet UE , car elle est obligatoire");
-                        return;
-                    }
-
-                    int confirm = JOptionPane.showConfirmDialog(dialogRef[0],
-                            "Êtes-vous sûr de vouloir supprimer l'UE " + selectedUE.getNom() + " ?",
-                            "Confirmation de suppression", JOptionPane.YES_NO_OPTION);
-
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        // DataStore.deleteUE(selectedUE);
-                        if (ueService.delete(selectedUE.getId())) {
-                            ueTableModel.removeRow(selectedRow);
-                            JOptionPane.showMessageDialog(dialogRef[0],
-                                    "L'UE a été supprimée avec succès.",
-                                    "Suppression réussie", JOptionPane.INFORMATION_MESSAGE);
-                        } else {
-                            JOptionPane.showMessageDialog(dialogRef[0],
-                                    "Une erreur s'est produite lors de la suppression de l'UE.",
-                                    "Erreur", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                }
-            } else {
-                JOptionPane.showMessageDialog(dialogRef[0],
-                        "Veuillez sélectionner une UE à supprimer",
-                        "Information", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
-        buttonsPanel.add(etudButton);
-        buttonsPanel.add(addUEButton);
-        buttonsPanel.add(modifyUEButton);
-        buttonsPanel.add(deleteUEButton);
-        gestionUEPanel.add(buttonsPanel, BorderLayout.SOUTH);
-
-        // Création d'une boite de dialogue personnalisée
-        JDialog dialog = new JDialog(parent, "Gestion des UE", true);
-        dialogRef[0] = dialog;
-        dialog.setContentPane(gestionUEPanel);
-        dialog.setSize(1000, 800);
-        dialog.setLocationRelativeTo(parent);
-        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setVisible(true);
-    }
-
-    public void showEtudiantsList(FenetrePrincipal parent, UE ue) {
+    public void showGroupeList(FenetrePrincipal parent, Formation formation) {
         Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
         Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
         Color DANGER_COLOR = new Color(231, 76, 60); // Red
@@ -416,7 +96,7 @@ public class UeService {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 
         // Titre avec une police moderne et une couleur claire
-        JLabel titleLabel = new JLabel("Liste des Étudiants de l'UE  " + ue.getNom(), JLabel.CENTER);
+        JLabel titleLabel = new JLabel("Gestion des Groupes de la formation  " + formation.getNom(), JLabel.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -450,7 +130,221 @@ public class UeService {
         etudiantsPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Configuration de la table avec un modèle personnalisé
-        String[] columnNames = { "INE", "Prénom", "Nom", "Adresse", "DateNaissance", "Email", "Groupe", "Inscription" };
+        String[] columnNames = { "ID", "Groupe", "Type" };
+
+        DefaultTableModel groupesTableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Empêche l'édition directe dans la table
+            }
+        };
+
+        JTable groupeTable = new JTable(groupesTableModel);
+        groupeTable.setRowHeight(30);
+        groupeTable.setIntercellSpacing(new Dimension(5, 5));
+        groupeTable.setShowGrid(true);
+        groupeTable.setGridColor(new Color(230, 230, 230));
+        groupeTable.setSelectionBackground(PRIMARY_COLOR);
+        groupeTable.setSelectionForeground(Color.WHITE);
+        groupeTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        groupeTable.getTableHeader().setBackground(new Color(220, 220, 220));
+        groupeTable.getTableHeader().setForeground(TEXT_COLOR);
+        groupeTable.setFont(new Font("Arial", Font.PLAIN, 13));
+        groupeTable.getTableHeader().setReorderingAllowed(false);
+        groupeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        groupeTable.setFillsViewportHeight(true);
+
+        JTableHeader header = groupeTable.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(new Color(100, 149, 237));
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(header.getPreferredSize().width, 35));
+
+        // Définir les largeurs de colonnes
+        groupeTable.getColumnModel().getColumn(0).setPreferredWidth(80); // Code
+        groupeTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Intitulé
+        groupeTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Crédits
+
+        // Variables pour garder la trace de la formation sélectionnée
+        final int[] selectedRow = { -1 };
+        final Groupe[] selectedGroupe = { null };
+
+        Runnable loadData = () -> {
+            // Effacer les données existantes
+            groupesTableModel.setRowCount(0);
+            // Récupérer les étudiants liés à cette formation
+            List<Groupe> groupes = groupeDAO.getGroupesByFormation(formation);
+            // Dans votre code principal:
+            for (Groupe groupe : groupes) {
+
+                groupesTableModel.addRow(new Object[] {
+                        groupe.getId(),
+                        "Groupe " + groupe.getNumero(),
+                        groupe.getTypeGroupe().getLabel()
+                });
+
+            }
+
+            // Configurer le renderer pour la colonne de statut (supposons que c'est la
+            // colonne 4)
+            // groupeTable.getColumnModel().getColumn(7).setCellRenderer(new
+            // StatusRenderer());
+
+            // Filtrage en temps réel
+            searchField.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    filterTableGroupe(groupesTableModel, groupeTable, searchField.getText(), groupes);
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    filterTableGroupe(groupesTableModel, groupeTable, searchField.getText(), groupes);
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    filterTableGroupe(groupesTableModel, groupeTable, searchField.getText(), groupes);
+                }
+            });
+        };
+        loadData.run();
+        // Ajouter la table dans un JScrollPane avec style
+        JScrollPane scrollPane = new JScrollPane(groupeTable);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        scrollPane.getViewport().setBackground(Color.WHITE);
+        etudiantsPanel.add(scrollPane, BorderLayout.CENTER);
+
+        // Panneau pour les boutons en bas
+        JPanel buttonsPanel = new JPanel(new BorderLayout());
+        // buttonsPanel.setLayout(new FlowLayout();
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        etudiantsPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        JButton etudButton = new JButton("Lister Etudiant ");
+        // JButton annulerButton = new JButton("ANNULER ");
+        // Style buttons
+        styleButton(etudButton, PRIMARY_COLOR);
+        // styleButton(annulerButton, DANGER_COLOR);
+        etudButton.setEnabled(false);
+        // annulerButton.setEnabled(false);
+        // Écouteur de sélection pour le tableau
+        groupeTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                selectedRow[0] = groupeTable.getSelectedRow();
+                if (selectedRow[0] >= 0) {
+                    // Convertir l'index de la ligne du modèle de vue au modèle de données
+                    int modelRow = groupeTable.convertRowIndexToModel(selectedRow[0]);
+                    String id = groupesTableModel.getValueAt(modelRow, 0).toString();
+                    // statusLabel.setText("Etudiant sélectionné: " + code);
+                    List<Groupe> groupes = groupeDAO.getGroupesByFormation(formation);
+                    for (Groupe groupe : groupes) {
+                        if (groupe.getId().toString().equals(id)) {
+                            selectedGroupe[0] = groupe;
+                            break;
+                        }
+                    }
+                    // Remplir les champs
+                    if (selectedGroupe[0] != null) {
+                        // Activer les boutons
+                        etudButton.setEnabled(true);
+                        // annulerButton.setEnabled(false);
+                    } else {
+                        etudButton.setEnabled(false);
+                        // annulerButton.setEnabled(true);
+                    }
+                }
+            }
+        });
+        JDialog[] dialogRef = new JDialog[1];
+        etudButton.addActionListener(e -> {
+            if (selectedGroupe[0] != null) {
+
+                showEtudiantsList(parent, selectedGroupe[0]);
+
+            } else {
+                JOptionPane.showMessageDialog(dialogRef[0],
+                        "Veuillez sélectionner un Groupe",
+                        "Information", JOptionPane.INFORMATION_MESSAGE);
+
+            }
+        });
+
+        // buttonsPanel.add(annulerButton, BorderLayout.WEST);
+        buttonsPanel.add(etudButton, BorderLayout.EAST);
+
+        // Création d'une boite de dialogue personnalisée
+        JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
+        dialog.setContentPane(etudiantsPanel);
+        dialog.setSize(1000, 800);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
+    }
+
+    public void showEtudiantsList(FenetrePrincipal parent, Groupe groupe) {
+        Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
+        Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
+        Color DANGER_COLOR = new Color(231, 76, 60); // Red
+        Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
+        Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
+        Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+
+        // Création du panneau principal avec une marge intérieure
+        JPanel etudiantsPanel = new JPanel(new BorderLayout(10, 10));
+        etudiantsPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        etudiantsPanel.setBackground(new Color(240, 240, 240));
+
+        // Panneau d'en-tête avec dégradé
+        JPanel headerPanel = new JPanel(new BorderLayout(10, 10)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(70, 130, 180),
+                        getWidth(), 0, new Color(100, 149, 237));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
+        // Titre avec une police moderne et une couleur claire
+        JLabel titleLabel = new JLabel("Liste des Étudiants de l'UE  " + groupe, JLabel.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        // Champ de recherche
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new FlowLayout(FlowLayout.CENTER)); // Centrer le champ de recherche
+        JLabel searchLabel = new JLabel("Rechercher:");
+        searchLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        searchLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+
+        JTextField searchField = new JTextField(20);
+        // searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        // searchField.setForeground(Color.DARK_GRAY);
+        searchField.setMaximumSize(new Dimension(250, 30));
+        // Style text field
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(BORDER_COLOR),
+                BorderFactory.createEmptyBorder(5, 7, 5, 7)));
+
+        searchField.setPreferredSize(new Dimension(200, 30));
+
+        // Ajouter le titre et le champ de recherche au panneau d'en-tête
+        headerPanel.add(titleLabel);
+        headerPanel.add(Box.createVerticalStrut(10));
+        headerPanel.add(searchPanel);
+        searchPanel.add(searchLabel);
+        searchPanel.add(searchField);
+
+        etudiantsPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Configuration de la table avec un modèle personnalisé
+        String[] columnNames = { "INE", "Prénom", "Nom", "Adresse", "DateNaissance", "Email" };
 
         DefaultTableModel etudiantsTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -495,11 +389,10 @@ public class UeService {
             // Effacer les données existantes
             etudiantsTableModel.setRowCount(0);
             // Récupérer les étudiants liés à cette formation
-            List<Etudiant> etudiantsByUe = etudiantService.getEtudiantsByUE(ue);
+            List<Etudiant> etudiantsByUe = etudiantService.getEtudiantsByGroupe(groupe);
             // Dans votre code principal:
             for (Etudiant etudiant : etudiantsByUe) {
                 // Déterminer le statut d'inscription
-                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
 
                 // Ajouter la ligne avec le statut en texte (le renderer s'occupera de
                 // l'affichage)
@@ -510,14 +403,9 @@ public class UeService {
                         etudiant.getAdresse(),
                         etudiant.getDateNaissance(),
                         etudiant.getEmail(),
-                        (etudiant.getGroupe() != null) ? etudiant.getGroupe().getNumero() : "Non Affecté",
-                        status
+
                 });
             }
-
-            // Configurer le renderer pour la colonne de statut (supposons que c'est la
-            // colonne 4)
-            etudiantsTable.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
             // Filtrage en temps réel
             searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -550,12 +438,12 @@ public class UeService {
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         etudiantsPanel.add(buttonsPanel, BorderLayout.SOUTH);
         JButton genererPDFButton = new JButton("Generer PDF ");
-        JButton annulerButton = new JButton("ANNULER ");
+        JButton genererCSVButton = new JButton("Generer CSV ");
         // Style buttons
         styleButton(genererPDFButton, SUCCESS_COLOR);
-        styleButton(annulerButton, DANGER_COLOR);
+        // styleButton(annulerButton, DANGER_COLOR);
+        styleButton(genererCSVButton, PRIMARY_COLOR);
 
-        annulerButton.setEnabled(false);
         // Écouteur de sélection pour le tableau
         etudiantsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -567,30 +455,16 @@ public class UeService {
                     int modelRow = etudiantsTable.convertRowIndexToModel(selectedRow[0]);
                     String code = etudiantsTableModel.getValueAt(modelRow, 0).toString();
                     // statusLabel.setText("Etudiant sélectionné: " + code);
-                    List<Etudiant> etudiantByUE = etudiantService.getEtudiantsByUE(ue);
+                    List<Etudiant> etudiantByGroupe = etudiantService.getEtudiantsByGroupe(groupe);
                     // List<> formations = formationService.findAll();
                     // Trouver la formation correspondante
-                    for (Etudiant etudiant : etudiantByUE) {
+                    for (Etudiant etudiant : etudiantByGroupe) {
                         if (etudiant.getIne().equals(code)) {
                             selectedEtudiant[0] = etudiant;
                             break;
                         }
                     }
 
-                    // Remplir les champs
-                    if (selectedEtudiant[0] != null && !selectedEtudiant[0].isInscriptionValidee()) {
-
-                        // Activer les boutons
-                        // saveButton.setEnabled(true);
-                        // deleteButton.setEnabled(true);
-                        // Activer les boutons
-                        // genererPDFButton.setEnabled(true);
-                        annulerButton.setEnabled(false);
-
-                    } else {
-                        // genererPDFButton.setEnabled(false);
-                        annulerButton.setEnabled(true);
-                    }
                 }
             }
         });
@@ -606,13 +480,13 @@ public class UeService {
             timer.start();
 
             // Récupérer la liste des étudiants de l'UE sélectionnée
-            List<Etudiant> etudiants = etudiantService.getEtudiantsByUE(ue);
+            List<Etudiant> etudiants = etudiantService.getEtudiantsByGroupe(groupe);
 
             // Générer le PDF dans un thread séparé
             SwingWorker<Void, Void> worker = new SwingWorker<>() {
                 @Override
                 protected Void doInBackground() {
-                    generateStudentListPDF(etudiants, ue.getNom());
+                    generateStudentListPDF(etudiants, groupe.toString());
                     return null;
                 }
 
@@ -624,38 +498,38 @@ public class UeService {
             worker.execute();
         });
 
-        annulerButton.addActionListener(e -> {
-            if (selectedEtudiant[0] != null) {
-                // Couleur initiale et animation pour le bouton
-                Color initialColor = annulerButton.getBackground();
-                annulerButton.setBackground(new Color(231, 76, 60)); // Rouge clair pour effet visuel
+        genererCSVButton.addActionListener(e -> {
 
-                Timer timer = new Timer(300, event -> {
-                    annulerButton.setBackground(initialColor);
-                    ((Timer) event.getSource()).stop();
-                });
-                timer.start();
+            // Animation pour le bouton
+            genererCSVButton.setBackground(new Color(39, 174, 96));
+            Timer timer = new Timer(300, event -> {
+                genererCSVButton.setBackground(SUCCESS_COLOR);
+                ((Timer) event.getSource()).stop();
+            });
+            timer.start();
 
-                // Annulation de l'inscription
-                etudiantService.invaliderInscription(selectedEtudiant[0].getId());
+            // Récupérer la liste des étudiants de l'UE sélectionnée
+            List<Etudiant> etudiants = etudiantService.getEtudiantsByGroupe(groupe);
 
-                // Personnalisation des couleurs de la boîte de dialogue
-                UIManager.put("OptionPane.background", Color.WHITE);
-                UIManager.put("Panel.background", Color.WHITE);
-                UIManager.put("OptionPane.messageForeground", new Color(39, 174, 96)); // Vert de confirmation
-                UIManager.put("OptionPane.messageFont", new Font("Arial", Font.BOLD, 14));
-                UIManager.put("Button.background", new Color(41, 128, 185)); // Bleu primaire
-                UIManager.put("Button.foreground", Color.WHITE);
+            // Générer le CSV dans un thread séparé
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    generateStudentListCSV(etudiants, groupe.toString());
+                    return null;
+                }
 
-                JOptionPane.showMessageDialog(parent,
-                        "Inscription annulée avec succès!",
-                        "Succès", JOptionPane.INFORMATION_MESSAGE);
-                loadData.run();
-            }
+                @Override
+                protected void done() {
+                    showSuccessDialog("CSV généré avec succès!");
+                }
+            };
+            worker.execute();
         });
 
         // buttonsPanel.add(annulerButton, BorderLayout.WEST);
         buttonsPanel.add(genererPDFButton, BorderLayout.EAST);
+        buttonsPanel.add(genererCSVButton, BorderLayout.WEST);
 
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
@@ -693,6 +567,29 @@ public class UeService {
         UIManager.put("Button.foreground", Color.WHITE);
 
         JOptionPane.showMessageDialog(null, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void filterTableGroupe(DefaultTableModel tableModel, JTable groupeTable, String searchText,
+            List<Groupe> groupes) {
+        tableModel.setRowCount(0); // Réinitialise la table
+        for (Groupe groupe : groupes) {
+            if (groupe.getId().toString().toLowerCase().contains(searchText.toLowerCase()) ||
+                    groupe.getNumero().toString().toLowerCase().contains(searchText.toLowerCase()) ||
+
+                    groupe.getTypeGroupe().getLabel().toLowerCase().contains(searchText.toLowerCase())) {
+
+                tableModel.addRow(new Object[] {
+                        groupe.getId(),
+                        "Groupe " + groupe.getNumero(),
+                        groupe.getTypeGroupe().getLabel()
+
+                });
+            }
+            // Configurer le renderer pour la colonne de statut (supposons que c'est la
+            // colonne 4)
+            groupeTable.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+
+        }
     }
 
     private void styleButton(JButton button, Color bgColor) {
@@ -1478,6 +1375,16 @@ public class UeService {
         Document document = new Document(PageSize.A4.rotate());
         try {
             String filePath = "Liste_Etudiants_" + ueName.replaceAll("\\s+", "_") + ".pdf";
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Enregistrer le fichier PDF");
+            fileChooser.setSelectedFile(new File("Liste_Etudiants_" + ueName.replaceAll("\\s+", "_") + ".pdf"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                filePath = fileToSave.getAbsolutePath();
+            }
+
             PdfWriter.getInstance(document, new FileOutputStream(filePath));
             document.open();
 
@@ -1488,7 +1395,7 @@ public class UeService {
             com.itextpdf.text.Font cellFont = new com.itextpdf.text.Font(baseFont, 9, com.itextpdf.text.Font.NORMAL);
 
             // Titre
-            Paragraph title = new Paragraph("Liste des étudiants inscrits à l'UE " + ueName, titleFont);
+            Paragraph title = new Paragraph("Liste des étudiants du " + ueName, titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             document.add(title);
             document.add(new Paragraph("\n"));
@@ -1529,6 +1436,40 @@ public class UeService {
                 Desktop.getDesktop().open(pdfFile);
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void generateStudentListCSV(List<Etudiant> etudiants, String ueName) {
+        String filePath = "Liste_Etudiants_" + ueName.replaceAll("\\s+", "_") + ".csv";
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Enregistrer le fichier CSV");
+        fileChooser.setSelectedFile(new File("Liste_Etudiants_" + ueName.replaceAll("\\s+", "_") + ".csv"));
+
+        int userSelection = fileChooser.showSaveDialog(null);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            filePath = fileToSave.getAbsolutePath();
+        }
+
+        try (FileWriter writer = new FileWriter(filePath)) {
+            // Écriture de l'en-tête
+            writer.append("INE,Prénom,Nom,Email,Sexe,Date Naissance,Adresse\n");
+
+            // Écriture des étudiants
+            for (Etudiant etudiant : etudiants) {
+                writer.append(etudiant.getIne()).append(",")
+                        .append(etudiant.getPrenom()).append(",")
+                        .append(etudiant.getNom()).append(",")
+                        .append(etudiant.getEmail()).append(",")
+                        .append(etudiant.getSexe().getPremiereLettre()).append(",")
+                        .append(formatDate(etudiant.getDateNaissance())).append(",")
+                        .append(etudiant.getAdresse()).append("\n");
+            }
+
+            System.out.println("CSV généré avec succès : " + filePath);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

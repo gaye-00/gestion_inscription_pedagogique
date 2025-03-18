@@ -6,4 +6,9 @@ public enum Sexe {
     public String getLabel() {
         return this.name();
     }
+
+    public String getPremiereLettre() {
+        return this.name().substring(0, 1);
+    }
+
 }

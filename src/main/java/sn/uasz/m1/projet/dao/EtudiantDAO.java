@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import sn.uasz.m1.projet.interfaces.GenericService;
 import sn.uasz.m1.projet.interfaces.IEtudiantDAO;
 import sn.uasz.m1.projet.model.formation.Formation;
+import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.utils.JPAUtil;
@@ -305,5 +306,32 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
             }
         }
     }
+    @Override
 
+    public List<Etudiant> getEtudiantsByGroupe(Groupe groupe) {
+        if (groupe == null) {
+            return Collections.emptyList();
+        }
+    
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Etudiant> query = em.createQuery(
+                    "SELECT e FROM Etudiant e " +
+                    "WHERE e.groupe = :groupe " +
+                    "AND e.inscriptionValidee = true",
+                    Etudiant.class);
+    
+            query.setParameter("groupe", groupe);
+    
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        } finally {
+            if (em != null) {
+                em.close();
+            }
+        }
+    }
+     
 }

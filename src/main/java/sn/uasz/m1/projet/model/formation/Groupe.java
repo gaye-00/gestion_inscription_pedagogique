@@ -10,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -40,6 +42,10 @@ public class Groupe {
     @OneToMany(mappedBy = "groupe", cascade = CascadeType.ALL)
     private Set<Etudiant> etudiants = new HashSet<>();
 
+    @ManyToOne
+    @JoinColumn(name = "formation_id")
+    private Formation formation;
+
     // Méthodes helper
     public void addEtudiant(Etudiant etudiant) {
         this.etudiants.add(etudiant);
@@ -49,5 +55,9 @@ public class Groupe {
     public void removeEtudiant(Etudiant etudiant) {
         this.etudiants.remove(etudiant);
         etudiant.setGroupe(null);
+    }
+
+    public String toString() {
+        return "Groupe-" + typeGroupe.getLabel() + "-" + this.numero;
     }
 }

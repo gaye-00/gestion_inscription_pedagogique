@@ -54,6 +54,9 @@ public class Formation {
     @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Etudiant> etudiants = new HashSet<>();
 
+    @OneToMany(mappedBy = "formation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Groupe> groupes = new HashSet<>();
+
     @ManyToOne
     @JoinColumn(name = "responsable_id")
     private ResponsablePedagogique responsable;

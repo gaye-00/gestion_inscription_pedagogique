@@ -15,8 +15,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.util.List;
 
@@ -24,7 +22,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -36,7 +33,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
@@ -54,8 +50,6 @@ import javax.swing.table.TableRowSorter;
 
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
-import org.w3c.dom.events.MouseEvent;
-
 import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
@@ -64,19 +58,20 @@ import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
 import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Niveau;
-import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
-import sn.uasz.m1.projet.model.person.Enseignant;
+
 import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class FormationService {
     private final ResponsableDAO responsableDAO;
-    private final FormationDAO formationService;
+    private final FormationDAO formationDAO;
     private final EtudiantDAO etudiantService;
     private final EnseignantDAO enseignantDAO;
+
     private final UeService ueService;
+    private final GroupeService groupeService;
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
     static Color DANGER_COLOR = new Color(231, 76, 60); // Red
@@ -84,16 +79,17 @@ public class FormationService {
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
     private final String[] columnNamesFormation = { "Code", "Intitulé", "Niveau", "Responsable", "EmailResp",
-            "Nb_ue_otionnel",
+            "Nb_ue_optionnel",
             "Max_Effectif_Groupe" };
     private DefaultTableModel tableModel;
 
     public FormationService() {
         this.responsableDAO = new ResponsableDAO();
         this.enseignantDAO = new EnseignantDAO();
-        this.formationService = new FormationDAO();
+        this.formationDAO = new FormationDAO();
         this.etudiantService = new EtudiantDAO();
         this.ueService = new UeService();
+        this.groupeService = new GroupeService();
         tableModel = new DefaultTableModel(columnNamesFormation, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -207,7 +203,7 @@ public class FormationService {
             if (respCombo.getItemCount() > 0 && respCombo.getSelectedItem() != null)
                 nouvelleFormation.setResponsableFormation((Enseignant) respCombo.getSelectedItem());
             // Sauvegarder dans la base de données
-            boolean success = formationService.create(nouvelleFormation);
+            boolean success = formationDAO.create(nouvelleFormation);
             if (success) {
                 JOptionPane.showMessageDialog(null,
                         "Formation créée avec succès!",
@@ -275,8 +271,6 @@ public class FormationService {
         centerPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER_COLOR),
                 BorderFactory.createEmptyBorder(15, 20, 15, 20)));
-
-
 
         // Créer le tableau
         JTable formationsTable = new JTable(tableModel);
@@ -449,18 +443,22 @@ public class FormationService {
         relatedPanel.setBackground(Color.WHITE);
 
         JButton listeUEsButton = new JButton("Gérer UEs");
-        JButton listeEtudiantsButton = new JButton("Lister Étudiants inscrits");
+        JButton listeEtudiantsButton = new JButton("Lister Étudiants");
+        JButton listeGroupesButton = new JButton("Gerer Groupes");
 
         // Style buttons
         styleButton(listeUEsButton, PRIMARY_COLOR);
         styleButton(listeEtudiantsButton, PRIMARY_COLOR);
+        styleButton(listeGroupesButton, PRIMARY_COLOR);
 
         relatedPanel.add(listeUEsButton);
         relatedPanel.add(listeEtudiantsButton);
+        relatedPanel.add(listeGroupesButton);
 
         // État initial des boutons
         listeUEsButton.setEnabled(false);
         listeEtudiantsButton.setEnabled(false);
+        listeGroupesButton.setEnabled(false);
 
         // Ajouter le panneau de boutons sous le formulaire
         gbc.gridx = 0;
@@ -524,8 +522,8 @@ public class FormationService {
             tableModel.setRowCount(0); // Effacer les données existantes
             statusLabel.setText("Chargement des données...");
 
-            // Charger les formations 
-            List<Formation> formations = formationService.findAll();
+            // Charger les formations
+            List<Formation> formations = formationDAO.findAll();
             for (Formation formation : formations) {
                 tableModel.addRow(new Object[] {
                         formation.getCode(),
@@ -548,6 +546,7 @@ public class FormationService {
             deleteButton.setEnabled(false);
             listeUEsButton.setEnabled(false);
             listeEtudiantsButton.setEnabled(false);
+            listeGroupesButton.setEnabled(false);
 
             // Effacer les champs
             codeField.setText("");
@@ -582,7 +581,7 @@ public class FormationService {
                     String code = tableModel.getValueAt(modelRow, 0).toString();
                     statusLabel.setText("Formation sélectionnée: " + code);
 
-                    List<Formation> formations = formationService.findAll();
+                    List<Formation> formations = formationDAO.findAll();
                     // Trouver la formation correspondante
                     for (Formation formation : formations) {
                         if (formation.getCode().equals(code)) {
@@ -610,6 +609,8 @@ public class FormationService {
                         deleteButton.setEnabled(true);
                         listeUEsButton.setEnabled(true);
                         listeEtudiantsButton.setEnabled(true);
+                        listeGroupesButton.setEnabled(true);
+
                     }
                 }
             }
@@ -685,7 +686,7 @@ public class FormationService {
                 selectedFormation[0].setMaxEffectifGroupe((int) maxEffectifGroupeSpinner.getValue());
 
                 // Enregistrer les modifications
-                formationService.update(selectedFormation[0]);
+                formationDAO.update(selectedFormation[0]);
 
                 // Style pour la boîte de dialogue de succès
                 UIManager.put("OptionPane.background", Color.WHITE);
@@ -733,7 +734,7 @@ public class FormationService {
                     statusLabel.setText("Suppression en cours...");
 
                     // Supprimer la formation
-                    formationService.delete(selectedFormation[0].getId());
+                    formationDAO.delete(selectedFormation[0].getId());
 
                     // Style pour la boîte de dialogue de succès
                     UIManager.put("OptionPane.messageForeground", SUCCESS_COLOR);
@@ -783,6 +784,23 @@ public class FormationService {
 
                 // Afficher la liste des étudiants
                 showEtudiantsList(parent, selectedFormation[0]);
+            }
+        });
+        listeGroupesButton.addActionListener(e -> {
+            if (selectedFormation[0] != null) {
+                // Animation pour le bouton
+                listeGroupesButton.setBackground(new Color(41, 128, 185)); // Bleu plus foncé pour l'effet
+                Timer timer = new Timer(300, event -> {
+                    listeEtudiantsButton.setBackground(PRIMARY_COLOR);
+                    ((Timer) event.getSource()).stop();
+                });
+                timer.start();
+
+                // Mise à jour du statut
+                statusLabel.setText("Affichage des étudiants inscrits à " + selectedFormation[0].getNom() + "...");
+
+                // Afficher la liste des étudiants
+                groupeService.showGroupeList(parent, selectedFormation[0]);
             }
         });
 
@@ -953,7 +971,7 @@ public class FormationService {
             // Dans votre code principal:
             for (Etudiant etudiant : formationEtudiants) {
                 // Déterminer le statut d'inscription
-                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "En Attente❌";
 
                 // Ajouter la ligne avec le statut en texte (le renderer s'occupera de
                 // l'affichage)
@@ -1121,7 +1139,7 @@ public class FormationService {
                     etudiant.getIne().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getEmail().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getPrenom().toLowerCase().contains(searchText.toLowerCase())) {
-                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "En Attente❌";
                 tableModel.addRow(new Object[] {
                         etudiant.getIne(),
                         etudiant.getPrenom(),
@@ -1143,7 +1161,7 @@ public class FormationService {
     private void refreshTable(DefaultTableModel tableModel) {
         tableModel.setRowCount(0);
         // Charger les formations depuis DataStore
-        List<Formation> formations = formationService.findAll();
+        List<Formation> formations = formationDAO.findAll();
         for (Formation formation : formations) {
             tableModel.addRow(new Object[] {
                     formation.getCode(),
