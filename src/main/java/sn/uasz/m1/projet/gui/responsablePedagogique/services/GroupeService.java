@@ -62,7 +62,7 @@ public class GroupeService {
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
-
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     public GroupeService() {
 
     }
@@ -275,7 +275,7 @@ public class GroupeService {
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
         dialog.setContentPane(etudiantsPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -534,7 +534,7 @@ public class GroupeService {
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
         dialog.setContentPane(etudiantsPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -1321,54 +1321,6 @@ public class GroupeService {
         });
 
         return panel;
-    }
-
-    // Méthode pour afficher la liste des UEs d'une formation
-    public void showUEsList(FenetrePrincipal parent, Formation formation) {
-        // Créer une fenêtre de dialogue
-        JDialog dialog = new JDialog(parent, "UEs de la formation " + formation.getNom(), true);
-        dialog.setSize(600, 400);
-        dialog.setLocationRelativeTo(parent);
-        dialog.setLayout(new BorderLayout());
-
-        // Titre
-        JLabel titleLabel = new JLabel(
-                "Liste des UEs de la formation: " + formation.getCode() + " - " + formation.getNom(),
-                JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        dialog.add(titleLabel, BorderLayout.NORTH);
-
-        // Tableau des UEs
-        String[] columnNames = { "Code UE", "Intitulé", "Crédits", "Description" };
-        DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
-
-        // Récupérer les UEs liées à cette formation
-        // ArrayList<UE> formationUEs = DataStore.getUEsByFormation(formation);
-        List<UE> formationUEs = ueService.getUEsByFormation(formation.getId());
-
-        for (UE ue : formationUEs) {
-            tableModel.addRow(new Object[] {
-                    ue.getCode(),
-                    ue.getNom(),
-                    ue.getCredits(),
-                    ue.getNom() // ! ue.getDescription()
-            });
-        }
-
-        JTable uesTable = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(uesTable);
-        dialog.add(scrollPane, BorderLayout.CENTER);
-
-        // Bouton de fermeture
-        JButton closeButton = new JButton("Fermer");
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(closeButton);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        closeButton.addActionListener(e -> dialog.dispose());
-
-        dialog.setVisible(true);
     }
 
     public void generateStudentListPDF(List<Etudiant> etudiants, String ueName) {

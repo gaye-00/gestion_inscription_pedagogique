@@ -85,6 +85,7 @@ public class UeService {
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     public UeService() {
 
@@ -290,7 +291,7 @@ public class UeService {
             JDialog addDialog = new JDialog((JDialog) dialogRef[0], "Nouvelle UE", true);
             addDialog.setContentPane(createNouvelleUEPanel(formation, addDialog, ueTableModel));
             addDialog.pack();
-            addDialog.setSize(1250, 1500);
+            addDialog.setSize(screenSize);
             addDialog.setLocationRelativeTo(dialogRef[0]);
             addDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             addDialog.setVisible(true);
@@ -323,7 +324,7 @@ public class UeService {
                     modifyDialog.setContentPane(
                             createModifierUEPanel(selectedUE, formation, modifyDialog, ueTableModel, selectedRow));
                     modifyDialog.pack();
-                    modifyDialog.setSize(650, 500);
+                    modifyDialog.setSize(screenSize);
                     modifyDialog.setLocationRelativeTo(dialogRef[0]);
                     modifyDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                     modifyDialog.setVisible(true);
@@ -381,7 +382,7 @@ public class UeService {
         JDialog dialog = new JDialog(parent, "Gestion des UE", true);
         dialogRef[0] = dialog;
         dialog.setContentPane(gestionUEPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -660,7 +661,7 @@ public class UeService {
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
         dialog.setContentPane(etudiantsPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -1430,7 +1431,7 @@ public class UeService {
     public void showUEsList(FenetrePrincipal parent, Formation formation) {
         // Créer une fenêtre de dialogue
         JDialog dialog = new JDialog(parent, "UEs de la formation " + formation.getNom(), true);
-        dialog.setSize(600, 400);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setLayout(new BorderLayout());
 

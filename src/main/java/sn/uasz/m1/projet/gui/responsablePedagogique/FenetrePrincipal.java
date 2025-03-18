@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -54,7 +56,11 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         this.currentUser = user;
 
         setTitle("Gestion Pédagogique");
-        setSize(1500, 1600);
+        // Obtenir la taille de l'écran
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        // Définir la taille de la fenêtre pour correspondre à la taille de l'écran
+        setSize(screenSize);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -85,7 +91,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         contentPanel.add(dashboardPanel, DASHBOARD_PANEL);
 
         // Créer les panneaux de formulaires
-        JPanel nouvelleFormationPanel = formationGUI.createNouvelleFormationPanel(user,this, this,
+        JPanel nouvelleFormationPanel = formationGUI.createNouvelleFormationPanel(user, this, this,
                 GERER_FORMATION_PANEL);
         contentPanel.add(nouvelleFormationPanel, NOUVELLE_FORMATION_PANEL);
 
@@ -237,8 +243,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         statData[1][0] = "Étudiants";
         statData[1][2] = "Nombre total d'étudiants inscrits";
 
-        statData[2][0] = "Unités d'Enseignement";
-        statData[2][2] = "Nombre total d'UEs définies";
+        statData[2][0] = "Enseignants";
+        statData[2][2] = "Nombre total d'Enseignants";
 
         statData[3][0] = "Inscriptions";
         statData[3][2] = "Nombre d'inscriptions validées";
@@ -259,7 +265,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
 
             // Compter les UEs
 
-            statData[2][1] = etat.getUes().toString();
+            statData[2][1] = etat.getEnseignants().toString();
 
             // Compter les inscriptions (basé sur le nombre d'étudiants qui ont au moins une
             // UE assignée)

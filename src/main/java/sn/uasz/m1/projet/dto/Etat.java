@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Etat {
     Long formmations;
-    Long ues;
+    Long enseignants;
     Long inscriptions;
     Long etudiants;
 

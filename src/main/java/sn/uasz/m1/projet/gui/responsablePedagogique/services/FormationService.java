@@ -15,6 +15,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.util.List;
 
@@ -69,6 +70,7 @@ public class FormationService {
     private final FormationDAO formationDAO;
     private final EtudiantDAO etudiantService;
     private final EnseignantDAO enseignantDAO;
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     private final UeService ueService;
     private final GroupeService groupeService;
@@ -78,6 +80,7 @@ public class FormationService {
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+
     private final String[] columnNamesFormation = { "Code", "Intitulé", "Niveau", "Responsable", "EmailResp",
             "Nb_ue_optionnel",
             "Max_Effectif_Groupe" };
@@ -1121,7 +1124,8 @@ public class FormationService {
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
         dialog.setContentPane(etudiantsPanel);
-        dialog.setSize(1000, 800);
+
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
