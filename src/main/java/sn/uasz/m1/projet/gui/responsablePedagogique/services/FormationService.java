@@ -149,7 +149,7 @@ public class FormationService {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Enseignant) {
                     Enseignant resp = (Enseignant) value;
-                    setText(resp.getNom() + " " + resp.getPrenom());
+                    setText(resp.getPrenom() + " " + resp.getNom());
                 }
                 return this;
             }
@@ -248,7 +248,7 @@ public class FormationService {
         return panel;
     }
 
-    public JPanel createGererFormationsPanel(FenetrePrincipal parent, JPanel contentPanel, CardLayout cardLayout,
+    public JPanel createGererFormationsPanel(FenetrePrincipal parent, PanelSwitcher panelSwitcher,
             String NOUVELLE_FORMATION_PANEL) {
         // Define a consistent color palette
 
@@ -415,7 +415,7 @@ public class FormationService {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Enseignant) {
                     Enseignant resp = (Enseignant) value;
-                    setText(resp.getNom() + " " + resp.getPrenom());
+                    setText(resp.getPrenom() + " " + resp.getNom());
                 }
                 return this;
             }
@@ -642,7 +642,8 @@ public class FormationService {
             centerPanel.setVisible(false);
             Timer timer = new Timer(100, event -> {
                 centerPanel.setVisible(true);
-                cardLayout.show(contentPanel, NOUVELLE_FORMATION_PANEL);
+
+                panelSwitcher.showPanel(NOUVELLE_FORMATION_PANEL);
                 ((Timer) event.getSource()).stop();
             });
             timer.start();
@@ -737,17 +738,25 @@ public class FormationService {
                     statusLabel.setText("Suppression en cours...");
 
                     // Supprimer la formation
-                    formationDAO.delete(selectedFormation[0].getId());
+                    if (formationDAO.delete(selectedFormation[0].getId())) {
 
-                    // Style pour la boîte de dialogue de succès
-                    UIManager.put("OptionPane.messageForeground", SUCCESS_COLOR);
+                        // Style pour la boîte de dialogue de succès
+                        UIManager.put("OptionPane.messageForeground", SUCCESS_COLOR);
 
-                    JOptionPane.showMessageDialog(parent,
-                            "Formation supprimée avec succès!",
-                            "Succès", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(parent,
+                                "Formation supprimée avec succès!",
+                                "Succès", JOptionPane.INFORMATION_MESSAGE);
+                        statusLabel.setText("Formation supprimée");
+                    } else {
+                        JOptionPane.showMessageDialog(parent,
+                                "Erreur lors de la suppression de la formation. Veuillez réessayer.",
+                                "Erreur", JOptionPane.ERROR_MESSAGE);
+
+                        statusLabel.setText("Echec de la suppression");
+                    }
 
                     // Mise à jour du statut et rechargement
-                    statusLabel.setText("Formation supprimée");
+
                     loadData.run();
                 }
             }

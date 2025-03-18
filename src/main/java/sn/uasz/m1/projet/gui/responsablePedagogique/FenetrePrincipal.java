@@ -77,9 +77,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         String[] buttons = {
                 "Dashboard",
                 "Gérer Formations",
-                "Liste Inscriptions",
-                "Gérer Enseignants", // Changé de "Gérer Étudiants" à "Gérer Enseignants"
-                "Gérer Groupes"
+                "Gérer Enseignants"
+
         };
 
         cardLayout = new CardLayout();
@@ -88,6 +87,7 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
 
         // Créer le dashboard
         dashboardPanel = createDashboardPanel();
+        // reloadDashboard();
         contentPanel.add(dashboardPanel, DASHBOARD_PANEL);
 
         // Créer les panneaux de formulaires
@@ -98,15 +98,15 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
         JPanel nouvelleUEPanel = UeGUI.createNouvelleUEPanelExterne(this, DASHBOARD_PANEL);
         contentPanel.add(nouvelleUEPanel, NOUVELLE_UE_PANEL);
 
-        JPanel nouvelEnseignantPanel = enseignantGUI.createNouvelEnseignantPanel(this, this, NOUVEL_ENSEIGNANT_PANEL);
+        JPanel nouvelEnseignantPanel = enseignantGUI.createNouvelEnseignantPanel(this, this, GERER_ENSEIGNANT_PANEL);
         contentPanel.add(nouvelEnseignantPanel, NOUVEL_ENSEIGNANT_PANEL);
 
-        JPanel gererFormationsPanel = formationGUI.createGererFormationsPanel(this, contentPanel, cardLayout,
+        JPanel gererFormationsPanel = formationGUI.createGererFormationsPanel(this, this,
                 NOUVELLE_FORMATION_PANEL);
         contentPanel.add(gererFormationsPanel, GERER_FORMATION_PANEL);
 
         // Dans le constructeur de FenetrePrincipal
-        contentPanel.add(enseignantGUI.createGererEnseignantsPanel(this, contentPanel, cardLayout,
+        contentPanel.add(enseignantGUI.createGererEnseignantsPanel(this, this,
                 NOUVEL_ENSEIGNANT_PANEL), GERER_ENSEIGNANT_PANEL);
         // Ajouter les autres panneaux
         for (String btnText : buttons) {
@@ -117,8 +117,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
             if (!btnText.equals(DASHBOARD_PANEL) &&
                     !btnText.equals(NOUVELLE_FORMATION_PANEL) &&
                     !btnText.equals(NOUVELLE_UE_PANEL) &&
-                    !btnText.equals("Gérer Formations") &&
-                    !btnText.equals("Gérer Enseignants") && // Ajoutez cette condition
+                    !btnText.equals(GERER_FORMATION_PANEL) &&
+                    !btnText.equals(GERER_ENSEIGNANT_PANEL) && // Ajoutez cette condition
                     !btnText.equals(NOUVEL_ENSEIGNANT_PANEL)) {
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
@@ -162,6 +162,8 @@ public class FenetrePrincipal extends JFrame implements PanelSwitcher {
     }
 
     private JPanel createDashboardPanel() {
+        if (dashboardPanel != null)
+            contentPanel.remove(dashboardPanel);
         JPanel dashboardPanel = new JPanel(new BorderLayout());
         dashboardPanel.setBackground(Color.WHITE);
 

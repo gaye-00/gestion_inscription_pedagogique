@@ -1,5 +1,7 @@
 package sn.uasz.m1.projet.dao;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import jakarta.mail.Authenticator;
@@ -12,11 +14,25 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
 public class EmailService {
-    private static final String SMTP_HOST = "smtp.gmail.com"; // Remplacez selon votre fournisseur
-    private static final int SMTP_PORT = 587;
-    private static final String USERNAME = "oriontheroot@gmail.com"; // Remplacez par votre email
-    private static final String PASSWORD = "ihgm thcl xkdg mpao "; // ⚠️ Utilisez un mot de passe d'application si
-                                                                   // nécessaire
+    private static final String SMTP_HOST;
+    private static final int SMTP_PORT;
+    private static final String USERNAME;
+    private static final String PASSWORD;
+    static {
+        Properties properties = new Properties();
+        try {
+            // Charger le fichier properties
+            properties.load(new FileInputStream("email.properties"));
+            // Initialiser les variables statiques avec les valeurs du fichier properties
+            SMTP_HOST = properties.getProperty("smtp.host");
+            SMTP_PORT = Integer.parseInt(properties.getProperty("smtp.port"));
+            USERNAME = properties.getProperty("smtp.username");
+            PASSWORD = properties.getProperty("smtp.password");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erreur lors du chargement des propriétés email");
+        }
+    }
 
     public static void envoyerEmail(String destinataire, String sujet, String messageTexte, boolean isHtml) {
         Properties properties = new Properties();

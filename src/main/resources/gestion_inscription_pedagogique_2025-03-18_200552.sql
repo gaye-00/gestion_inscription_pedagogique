@@ -31,7 +31,7 @@ CREATE TABLE `enseignant` (
   `prenom` varchar(255) DEFAULT NULL,
   `telephone` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,11 +43,9 @@ INSERT INTO `enseignant` VALUES
 (1,'amadou.diallo@uasz.sn','ENS001','Diallo','Amadou','771234567'),
 (2,'fatou.diop@uasz.sn','ENS002','Diop','Fatou','778765432'),
 (3,'moussa.ndiaye@uasz.sn','ENS003','Ndiaye','Moussa','773456789'),
-(4,'amadou.diallo@uasz.sn','ENS001','Diallo','Amadou','771234567'),
-(5,'fatou.diop@uasz.sn','ENS002','Diop','Fatou','778765432'),
-(6,'moussa.ndiaye@uasz.sn','ENS003','Ndiaye','Moussa','773456789'),
+(6,'moussa.ndiaye@uasz.sn','ENS007','Ndiaye','Moussa','773456789'),
 (7,'awa.sarr@uasz.sn','ENS004','Sarr','Awa','776543210'),
-(8,'oumar.faye@uasz.sn','ENS005','Faye','Oumar','770987654');
+(8,'oumar.faye@uasz.sn','ENS005','Faye','OumarA','770987654');
 /*!40000 ALTER TABLE `enseignant` ENABLE KEYS */;
 
 --
@@ -100,7 +98,7 @@ CREATE TABLE `formation` (
   KEY `FK5rv7i7j0htkwc8traylg8ywue` (`responsableFormation_id`),
   CONSTRAINT `FK5rv7i7j0htkwc8traylg8ywue` FOREIGN KEY (`responsableFormation_id`) REFERENCES `enseignant` (`id`),
   CONSTRAINT `FKe28cx8n7tkhuhuvw1se39p1vu` FOREIGN KEY (`responsable_id`) REFERENCES `utilisateur` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,4 +242,4 @@ INSERT INTO `utilisateur` VALUES
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-18 20:06:31
+-- Dump completed on 2025-03-18 22:37:22

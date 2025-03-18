@@ -62,6 +62,8 @@ public class EnseignantService {
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+    private DefaultTableModel tableModel;
+    private final String[] columnNames = { "Matricule", "Prenom", "Nom", "email", "telephone" };
 
     public EnseignantService() {
         this.responsableDAO = new ResponsableDAO();
@@ -69,12 +71,19 @@ public class EnseignantService {
         this.enseignantService = new EnseignantDAO();
         this.ueService = new UeService();
         this.etudiantService = new EtudiantDAO();
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Rendre les cellules non modifiables
+            }
+        };
     }
 
     public JPanel createNouvelEnseignantPanel(FenetrePrincipal parent, PanelSwitcher panelSwitcher,
             String DASHBOARD_PANEL) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
+        panel.setSize(650, 400);
 
         // Titre
         JLabel titleLabel = new JLabel("Nouvel Enseignant", JLabel.CENTER);
@@ -157,7 +166,7 @@ public class EnseignantService {
                 JOptionPane.showMessageDialog(parent,
                         "Enseignant ajouté avec succès!",
                         "Succès", JOptionPane.INFORMATION_MESSAGE);
-
+                refreshTable(tableModel);
                 // Réinitialiser les champs
                 matriculeField.setText("");
                 nomField.setText("");
@@ -184,7 +193,7 @@ public class EnseignantService {
         return panel;
     }
 
-    public JPanel createGererEnseignantsPanel(FenetrePrincipal parent, JPanel contentPanel, CardLayout cardLayout,
+    public JPanel createGererEnseignantsPanel(FenetrePrincipal parent, PanelSwitcher panelSwitcher,
             String NOUVEL_ENSEIGNANT_PANEL) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(BACKGROUND_COLOR);
@@ -209,16 +218,7 @@ public class EnseignantService {
 
         panel.add(titlePanel, BorderLayout.NORTH);
 
-        // Tableau des enseignants
-        String[] columns = { "Matricule", "Nom", "Prénom", "Email", "Téléphone" };
-        DefaultTableModel model = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        JTable table = new JTable(model);
+        JTable table = new JTable(tableModel);
         // Better table styling
         table.setRowHeight(30);
         table.setIntercellSpacing(new Dimension(5, 5));
@@ -235,7 +235,7 @@ public class EnseignantService {
         table.setFillsViewportHeight(true);
 
         // Ajouter un TableRowSorter pour le filtrage
-        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
 
         // Enhanced search panel
@@ -261,7 +261,6 @@ public class EnseignantService {
         JLabel inLabel = new JLabel(" dans ");
         inLabel.setFont(new Font("Arial", Font.ITALIC, 14));
         inLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-        String[] columnNames = { "Matricule", "Prenom", "Nom", "email", "telephone" };
 
         JComboBox<String> searchColumnCombo = new JComboBox<>(columnNames);
         searchColumnCombo.setMaximumSize(new Dimension(150, 30));
@@ -319,8 +318,11 @@ public class EnseignantService {
 
         // Style buttons
         styleButton(refreshButton, new Color(149, 165, 166)); // Gray
-        styleButton(addButton, PRIMARY_COLOR);
+        styleButton(addButton, SUCCESS_COLOR);
         styleButton(deleteButton, DANGER_COLOR);
+        styleButton(editButton, PRIMARY_COLOR);
+        // deleteButton.setEnabled(false);
+        // editButton.setEnabled(false);
         buttonPanel.add(refreshButton);
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
@@ -328,20 +330,22 @@ public class EnseignantService {
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Charger les données
-        refreshTable(model);
+        refreshTable(tableModel);
+       
 
         // Actions des boutons
-        addButton.addActionListener(e -> cardLayout.show(contentPanel, NOUVEL_ENSEIGNANT_PANEL));
+        addButton.addActionListener(e -> panelSwitcher.showPanel(NOUVEL_ENSEIGNANT_PANEL));
         editButton.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
-                String matricule = (String) model.getValueAt(selectedRow, 0);
+                editButton.setEnabled(true);
+                String matricule = (String) tableModel.getValueAt(selectedRow, 0);
                 EnseignantDAO enseignantDAO = new EnseignantDAO();
                 Enseignant enseignant = enseignantDAO.findByMatricule(matricule);
                 if (enseignant != null) {
                     JDialog modifyDialog = new JDialog(parent, "Modifier Enseignant", true);
                     modifyDialog.setContentPane(
-                            createModifierEnseignantPanel(enseignant, modifyDialog, model, selectedRow));
+                            createModifierEnseignantPanel(enseignant, modifyDialog, tableModel, selectedRow));
                     modifyDialog.pack();
                     modifyDialog.setSize(650, 400);
                     modifyDialog.setLocationRelativeTo(parent);
@@ -350,29 +354,34 @@ public class EnseignantService {
                 }
             } else {
                 JOptionPane.showMessageDialog(parent, "Veuillez sélectionner un enseignant");
+                // editButton.setEnabled(false);
             }
         });
 
         deleteButton.addActionListener(e -> {
             int selectedRow = table.getSelectedRow();
             if (selectedRow >= 0) {
-                String matricule = (String) model.getValueAt(selectedRow, 0);
+                deleteButton.setEnabled(true);
+                String matricule = (String) tableModel.getValueAt(selectedRow, 0);
                 // Suppression
                 EnseignantDAO enseignantDAO = new EnseignantDAO();
 
                 if (enseignantDAO.deleteByMatricule(matricule)) {
                     JOptionPane.showMessageDialog(parent, "Enseignant supprimé avec succès");
-                    refreshTable(model);
+                    refreshTable(tableModel);
+                    panelSwitcher.showPanel("Gérer Enseignants");
+
                 } else {
                     JOptionPane.showMessageDialog(parent, "Erreur lors de la suppression de l'enseignant");
                 }
 
             } else {
                 JOptionPane.showMessageDialog(parent, "Veuillez sélectionner un enseignant");
+                deleteButton.setEnabled(false);
             }
         });
 
-        refreshButton.addActionListener(e -> refreshTable(model));
+        refreshButton.addActionListener(e -> refreshTable(tableModel));
 
         return panel;
     }
@@ -553,9 +562,8 @@ public class EnseignantService {
                         e.getTelephone()
                 });
             }
-        
-       
-    }
+
+        }
 
     }
 
