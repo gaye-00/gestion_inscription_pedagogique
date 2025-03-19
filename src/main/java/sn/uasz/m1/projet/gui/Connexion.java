@@ -3,12 +3,14 @@ package sn.uasz.m1.projet.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -29,10 +31,16 @@ import jakarta.persistence.TypedQuery;
 import sn.uasz.m1.projet.gui.etudiant.FormulaireEtudiant;
 import sn.uasz.m1.projet.gui.etudiant.MainFrameEtudiant;
 import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
-import sn.uasz.m1.projet.model.person.User;
 import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class Connexion extends JFrame {
+    // Ajout de constantes pour les couleurs
+    private static final Color PRIMARY_COLOR = new Color(41, 128, 185);
+    private static final Color SECONDARY_COLOR = new Color(52, 152, 219);
+    private static final Color BACKGROUND_COLOR = Color.WHITE;
+    private static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 28);
+    private static final Font LABEL_FONT = new Font("Segoe UI", Font.PLAIN, 14);
+
     private final JTextField emailField;
     private final JPasswordField passwordField;
     private final JButton connectButton;
@@ -40,47 +48,65 @@ public class Connexion extends JFrame {
     private final EntityManager em;
 
     public Connexion() {
-        setTitle("Connexion - Gestion des inscriptions pedagogiques");
-        setSize(450, 350);
+        // Configuration de base de la fenêtre
+        setTitle("Connexion - Gestion des inscriptions pédagogiques");
+        setSize(800, 500); // Fenêtre plus grande
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Color.WHITE);
+        // Panneau principal avec deux sections
+        JPanel mainPanel = new JPanel(new GridLayout(1, 2));
+        mainPanel.setBackground(BACKGROUND_COLOR);
 
-        JLabel titleLabel = new JLabel("Connexion Utilisateur", JLabel.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        titleLabel.setForeground(new Color(41, 128, 185));
-        titleLabel.setIcon(FontIcon.of(MaterialDesign.MDI_ACCOUNT_CIRCLE, 40, new Color(41, 128, 185)));
+        // Section gauche pour le formulaire
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setBackground(BACKGROUND_COLOR);
+        leftPanel.setBorder(new EmptyBorder(40, 40, 40, 20));
 
+        // En-tête avec logo et titre
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(BACKGROUND_COLOR);
+        
+        JLabel titleLabel = new JLabel("Bienvenue", JLabel.CENTER);
+        titleLabel.setFont(TITLE_FONT);
+        titleLabel.setForeground(PRIMARY_COLOR);
+        
+        JLabel subtitleLabel = new JLabel("Connectez-vous à votre compte", JLabel.CENTER);
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        subtitleLabel.setForeground(new Color(100, 100, 100));
+        
+        headerPanel.add(titleLabel, BorderLayout.NORTH);
+        headerPanel.add(subtitleLabel, BorderLayout.CENTER);
+        headerPanel.setBorder(new EmptyBorder(0, 0, 30, 0));
+
+        // Formulaire
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
+        formPanel.setBackground(BACKGROUND_COLOR);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(10, 0, 10, 0);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        JLabel emailLabel = new JLabel("Nom utilisateur :");
-        emailLabel.setIcon(FontIcon.of(MaterialDesign.MDI_ACCOUNT, 16, new Color(41, 128, 185)));
-        emailField = new JTextField(20);
-
-        JLabel passwordLabel = new JLabel("Mot de passe :");
-        passwordLabel.setIcon(FontIcon.of(MaterialDesign.MDI_LOCK, 16, new Color(41, 128, 185)));
-        passwordField = new JPasswordField(20);
-
+        // Style des champs
+        emailField = createStyledTextField("Nom d'utilisateur", MaterialDesign.MDI_ACCOUNT);
+        passwordField = createStyledPasswordField("Mot de passe", MaterialDesign.MDI_LOCK);
+        
+        // Bouton de connexion
         connectButton = new JButton("Se connecter");
         connectButton.setIcon(FontIcon.of(MaterialDesign.MDI_LOGIN, 20, Color.WHITE));
-        connectButton.setBackground(new Color(41, 128, 185));
+        connectButton.setBackground(PRIMARY_COLOR);
         connectButton.setForeground(Color.WHITE);
+        connectButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         connectButton.setFocusPainted(false);
-        connectButton.setPreferredSize(new Dimension(200, 35));
+        connectButton.setBorder(new EmptyBorder(12, 25, 12, 25));
+        connectButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         connectButton.addActionListener(e -> seConnecter());
 
-        // Texte cliquable pour l'inscription des étudiants
-        JLabel inscriptionLabel = new JLabel("<html><u>Pas encore inscrit ? Cliquez ici.</u></html>");
-        inscriptionLabel.setForeground(new Color(41, 128, 185));
-        inscriptionLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        // Lien d'inscription
+        JLabel inscriptionLabel = new JLabel("<html><u>Pas encore inscrit ? Créer un compte</u></html>", JLabel.CENTER);
+        inscriptionLabel.setForeground(SECONDARY_COLOR);
+        inscriptionLabel.setFont(LABEL_FONT);
         inscriptionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         inscriptionLabel.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -89,110 +115,84 @@ public class Connexion extends JFrame {
             }
         });
 
-        // Ajouter le texte sous le bouton "Se connecter"
-        gbc.gridx = 0; 
-        gbc.gridy = 3; 
-        gbc.gridwidth = 2;
+        // Ajout des composants au formulaire
+        gbc.insets = new Insets(5, 0, 5, 0);
+        formPanel.add(emailField, gbc);
+        formPanel.add(Box.createVerticalStrut(10), gbc);
+        formPanel.add(passwordField, gbc);
+        formPanel.add(Box.createVerticalStrut(25), gbc);
+        formPanel.add(connectButton, gbc);
+        formPanel.add(Box.createVerticalStrut(15), gbc);
         formPanel.add(inscriptionLabel, gbc);
 
+        leftPanel.add(headerPanel, BorderLayout.NORTH);
+        leftPanel.add(formPanel, BorderLayout.CENTER);
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(emailLabel, gbc);
+        // Section droite pour l'illustration
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(PRIMARY_COLOR);
+        
+        // Grande icône décorative
+        JLabel iconLabel = new JLabel(FontIcon.of(MaterialDesign.MDI_SCHOOL, 200, Color.WHITE));
+        iconLabel.setHorizontalAlignment(JLabel.CENTER);
+        
+        // Texte décoratif
+        JLabel welcomeText = new JLabel("<html><center>Système de Gestion<br>des Inscriptions Pédagogiques</center></html>", JLabel.CENTER);
+        welcomeText.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        welcomeText.setForeground(Color.WHITE);
+        welcomeText.setBorder(new EmptyBorder(30, 20, 30, 20));
 
-        gbc.gridx = 1;
-        formPanel.add(emailField, gbc);
+        rightPanel.add(iconLabel, BorderLayout.CENTER);
+        rightPanel.add(welcomeText, BorderLayout.SOUTH);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(passwordLabel, gbc);
-
-        gbc.gridx = 1;
-        formPanel.add(passwordField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        formPanel.add(connectButton, gbc);
-
-        mainPanel.add(titleLabel, BorderLayout.NORTH);
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(leftPanel);
+        mainPanel.add(rightPanel);
 
         add(mainPanel);
 
+        // Initialisation JPA
         emf = Persistence.createEntityManagerFactory("gestion_inscription_pedagogiquePU");
         em = emf.createEntityManager();
     }
 
-    // private void seConnecter() {
-    //     String email = emailField.getText();
-    //     String password = new String(passwordField.getPassword());
+    private JTextField createStyledTextField(String placeholder, MaterialDesign icon) {
+        JTextField field = new JTextField(20);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(10, 45, 10, 10)
+        ));
+        field.setFont(LABEL_FONT);
+        
+        JLabel iconLabel = new JLabel(FontIcon.of(icon, 20, PRIMARY_COLOR));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(BACKGROUND_COLOR);
+        wrapper.add(iconLabel, BorderLayout.WEST);
+        wrapper.add(field, BorderLayout.CENTER);
+        
+        return field;
+    }
 
-    //     if (email.isEmpty() || password.isEmpty()) {
-    //         showError("Veuillez remplir tous les champs", "Erreur");
-    //         return;
-    //     }
+    private JPasswordField createStyledPasswordField(String placeholder, MaterialDesign icon) {
+        JPasswordField field = new JPasswordField(20);
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(10, 45, 10, 10)
+        ));
+        field.setFont(LABEL_FONT);
+        
+        JLabel iconLabel = new JLabel(FontIcon.of(icon, 20, PRIMARY_COLOR));
+        iconLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(BACKGROUND_COLOR);
+        wrapper.add(iconLabel, BorderLayout.WEST);
+        wrapper.add(field, BorderLayout.CENTER);
+        
+        return field;
+    }
 
-    //     int result = verifierCredentials(email, password);
-    //     if (result == 2) {
-    //         dispose();
-    //         new MainFrameEtudiant().setVisible(true);
-    //     } else if (result == 1) {
-    //         User user = new User(email, "ResponsablePedagogique");
-    //         dispose();
-    //         new MainFrame(user).setVisible(true);
-    //     } else {
-    //         showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
-    //     }
-    // }
-
-    // private void seConnecter() {
-    //     String email = emailField.getText();
-    //     String password = new String(passwordField.getPassword());
-    
-    //     if (email.isEmpty() || password.isEmpty()) {
-    //         showError("Veuillez remplir tous les champs", "Erreur");
-    //         return;
-    //     }
-    
-    //     Long userId = verifierCredentials(email, password);
-    //     if (userId != null) {
-    //         dispose();
-    //         new MainFrameEtudiant(userId).setVisible(true); // Passe l'ID ici
-    //     } else {
-    //         showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
-    //     }
-    // }    
-
-    // private int verifierCredentials(String email, String password) {
-    //     try {
-    //         TypedQuery<Utilisateur> query = em.createQuery(
-    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-    //             Utilisateur.class
-    //         );
-    //         query.setParameter("email", email);
-    //         query.setParameter("password", password);
-    //         Utilisateur user = query.getSingleResult();
-    //         return "Etudiant".equals(user.getClass().getSimpleName()) ? 2 : 1;
-    //     } catch (Exception e) {
-    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-    //         return 0;
-    //     }
-    // }
-
-    // private Long verifierCredentials(String email, String password) {
-    //     try {
-    //         TypedQuery<Utilisateur> query = em.createQuery(
-    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-    //             Utilisateur.class
-    //         );
-    //         query.setParameter("email", email);
-    //         query.setParameter("password", password);
-    //         Utilisateur user = query.getSingleResult();
-    //         return user.getId(); // Retourne l'ID de l'utilisateur
-    //     } catch (Exception e) {
-    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-    //         return null; // Retourne null en cas d'échec
-    //     }
-    // } 
-    
     private void seConnecter() {
         String email = emailField.getText();
         String password = new String(passwordField.getPassword());
@@ -212,9 +212,9 @@ public class Connexion extends JFrame {
             }
             // Si l'utilisateur est un responsable pédagogique
             else if ("ResponsablePedagogique".equals(utilisateur.getRole())) {
-                User user = new User(email, "ResponsablePedagogique");
+               
                 dispose();
-                new FenetrePrincipal(user).setVisible(true);
+                new FenetrePrincipal(utilisateur).setVisible(true);
             }
         } else {
             JOptionPane.showMessageDialog(
@@ -227,22 +227,6 @@ public class Connexion extends JFrame {
             // showError("Nom utilisateur ou mot de passe incorrect", "Erreur d'authentification");
         }
     }
-
-    // private Utilisateur verifierCredentials(String email, String password) {
-    //     try {
-    //         TypedQuery<Utilisateur> query = em.createQuery(
-    //             "SELECT u FROM Utilisateur u WHERE u.email = :email AND u.password = :password",
-    //             Utilisateur.class
-    //         );
-    //         query.setParameter("email", email);
-    //         query.setParameter("password", password);
-    //         // System.out.println("#### Query : " + query.toString());
-    //         return query.getSingleResult();
-    //     } catch (Exception e) {
-    //         System.out.println("Erreur lors de la vérification des credentials : " + e.getMessage());
-    //         return null; // Retourne null si l'utilisateur n'est pas trouvé
-    //     }
-    // }
 
 
     private Utilisateur verifierCredentials(String email, String password) {

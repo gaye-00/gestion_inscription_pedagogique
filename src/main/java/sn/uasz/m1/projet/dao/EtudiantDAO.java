@@ -1,27 +1,31 @@
 package sn.uasz.m1.projet.dao;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
-import lombok.NoArgsConstructor;
+import sn.uasz.m1.projet.email.EmailService;
+import sn.uasz.m1.projet.email.EmailServiceImpl;
 import sn.uasz.m1.projet.interfaces.GenericService;
 import sn.uasz.m1.projet.interfaces.IEtudiantDAO;
 import sn.uasz.m1.projet.model.formation.Formation;
+import sn.uasz.m1.projet.model.formation.Groupe;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.utils.JPAUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@NoArgsConstructor
 public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
+    private static final Logger LOGGER = Logger.getLogger(EtudiantDAO.class.getName());
+
+    public EtudiantDAO() {
+
+    }
 
     @Override
     public boolean create(Etudiant etudiant) {
@@ -119,20 +123,76 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
                 etudiant.setInscriptionValidee(true); // Modifier l'attribut
                 em.merge(etudiant); // Sauvegarder la modification
                 transaction.commit();
+
+                // Envoyer un e-mail après validation
+                envoyerEmailValidation(etudiant);
+
                 return true;
             } else {
-                transaction.rollback(); // Annuler si l'étudiant n'existe pas
+                LOGGER.warning("Échec de la validation : étudiant introuvable (ID: " + etudiantId + ")");
+                transaction.rollback();
                 return false;
             }
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            e.printStackTrace();
+            LOGGER.severe("Erreur lors de la validation de l'inscription : " + e.getMessage());
             return false;
         } finally {
             em.close();
         }
+    }
+
+    private void envoyerEmailValidation(Etudiant etudiant) {
+        String sujet = "🎓 Validation de votre inscription à l'UASZ";
+
+        String message = "<!DOCTYPE html>" +
+                "<html lang='fr'>" +
+                "<head>" +
+                "<meta charset='UTF-8'>" +
+                "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
+                "<title>Validation d'inscription - UASZ</title>" +
+                "<style>" +
+                "body { font-family: Arial, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }" +
+                ".container { max-width: 600px; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: center; }"
+                +
+                "h2 { color: #2c3e50; }" +
+                "p { font-size: 16px; color: #333; line-height: 1.6; }" +
+                ".btn { display: inline-block; margin-top: 15px; padding: 10px 20px; font-size: 16px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px; }"
+                +
+                ".footer { margin-top: 20px; font-size: 14px; color: #777; }" +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<div class='container'>" +
+                "<h2>Bienvenue à l'Université Assane Seck de Ziguinchor, " + etudiant.getPrenom() + " "
+                + etudiant.getNom() + " 🎓</h2>" +
+                "<p>Nous avons le plaisir de vous informer que votre inscription à l'UASZ a été <strong>validée avec succès</strong>. 🎉</p>"
+                +
+                "<p>Vous pouvez dès à présent accéder à votre espace étudiant pour consulter votre dossier et suivre les prochaines étapes.</p>"
+                +
+
+                "<p class='footer'>Pour toute question, contactez le service des inscriptions à <br>" +
+                "<a href='mailto:scolarite@uasz.sn'>scolarite@uasz.sn</a> ou appelez le <strong>+221 77 102 61 70</strong>.</p>"
+                +
+                "<p class='footer'>Cordialement,<br>Le Service des Inscriptions - UASZ</p>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
+
+        // EmailService.envoyerEmail(etudiant.getEmail(), sujet, message, true);
+
+        try {
+            EmailService emailService = new EmailServiceImpl("");
+            emailService.sendEmail(etudiant.getEmail(), sujet, message);
+        } catch (IOException e) {
+            System.err.println("Erreur lors de l'envoi de l'e-mail de validation : " + e.getMessage());
+        }
+         catch (Exception e) {
+            System.err.println("Erreur lors de l'envoi de l'e-mail de validation : " + e.getMessage());
+        }
+
     }
 
     @Override
@@ -208,13 +268,12 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
         try (EntityManager em = JPAUtil.getEntityManager();) {
             // Requête JPQL pour récupérer les étudiants inscrits à au moins une UE de cette
             // formation
-            // TypedQuery<Etudiant> query = em.createQuery(
-            // "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation =
-            // :formation",
-            // Etudiant.class);
             TypedQuery<Etudiant> query = em.createQuery(
-                    "SELECT e FROM Etudiant e WHERE e.formation = :formation",
+                    "SELECT DISTINCT e FROM Etudiant e JOIN e.ues ue WHERE ue.formation =:formation",
                     Etudiant.class);
+            // TypedQuery<Etudiant> query = em.createQuery(
+            // "SELECT e FROM Etudiant e WHERE e.formation = :formation",
+            // Etudiant.class);
 
             query.setParameter("formation", formation);
 
@@ -242,6 +301,34 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
                             "WHERE e.ue_id = ? AND u.inscriptionValidee = true",
                     Etudiant.class);
             query.setParameter(1, ue.getId());
+
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        } finally {
+            if (em != null) {
+                em.close();
+            }
+        }
+    }
+
+    @Override
+
+    public List<Etudiant> getEtudiantsByGroupe(Groupe groupe) {
+        if (groupe == null) {
+            return Collections.emptyList();
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Etudiant> query = em.createQuery(
+                    "SELECT e FROM Etudiant e " +
+                            "WHERE e.groupe = :groupe " +
+                            "AND e.inscriptionValidee = true",
+                    Etudiant.class);
+
+            query.setParameter("groupe", groupe);
 
             return query.getResultList();
         } catch (Exception e) {

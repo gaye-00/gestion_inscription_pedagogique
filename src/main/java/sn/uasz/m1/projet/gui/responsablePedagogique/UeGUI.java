@@ -1,4 +1,4 @@
-package sn.uasz.m1.projet.gui.responsablePedagogique.services;
+package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
@@ -59,29 +59,32 @@ import javax.swing.table.TableRowSorter;
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 
+import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
 import sn.uasz.m1.projet.dao.UEDAO;
-import sn.uasz.m1.projet.gui.responsablePedagogique.FenetrePrincipal;
-import sn.uasz.m1.projet.gui.responsablePedagogique.services.FormationService.StatusRenderer;
+import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.UE;
+import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
-public class UeService {
+public class UeGUI {
     private final ResponsableDAO responsableDAO = new ResponsableDAO();
     private FormationDAO formationService = new FormationDAO();
     private UEDAO ueService = new UEDAO();
     private EtudiantDAO etudiantService = new EtudiantDAO();
+    private EnseignantDAO enseignantDAO = new EnseignantDAO();
     static Color PRIMARY_COLOR = new Color(52, 152, 219); // Blue
     static Color SUCCESS_COLOR = new Color(46, 204, 113); // Green
     static Color DANGER_COLOR = new Color(231, 76, 60); // Red
     static Color BACKGROUND_COLOR = new Color(245, 245, 245); // Light gray background
     static Color TEXT_COLOR = new Color(44, 62, 80); // Dark text
     static Color BORDER_COLOR = new Color(189, 195, 199); // Border color
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-    public UeService() {
+    public UeGUI() {
 
     }
 
@@ -225,7 +228,7 @@ public class UeService {
                     ue.getCredits(),
                     ue.getCoefficient(),
                     ue.getVolumeHoraire(),
-                    (ue.getNomResponsable() == null) ? "Enseignant NOn defini" : ue.getNomResponsable(),
+                    (ue.getEnseignant() == null) ? "Enseignant Non defini" : ue.getEnseignant(),
                     // ue.getDescription(), // Utiliser getDescription ici
                     ue.isObligatoire() ? "obligatoire" : "optionnel"
             });
@@ -285,7 +288,7 @@ public class UeService {
             JDialog addDialog = new JDialog((JDialog) dialogRef[0], "Nouvelle UE", true);
             addDialog.setContentPane(createNouvelleUEPanel(formation, addDialog, ueTableModel));
             addDialog.pack();
-            addDialog.setSize(1250, 1500);
+            addDialog.setSize(screenSize);
             addDialog.setLocationRelativeTo(dialogRef[0]);
             addDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             addDialog.setVisible(true);
@@ -318,7 +321,7 @@ public class UeService {
                     modifyDialog.setContentPane(
                             createModifierUEPanel(selectedUE, formation, modifyDialog, ueTableModel, selectedRow));
                     modifyDialog.pack();
-                    modifyDialog.setSize(650, 500);
+                    modifyDialog.setSize(screenSize);
                     modifyDialog.setLocationRelativeTo(dialogRef[0]);
                     modifyDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                     modifyDialog.setVisible(true);
@@ -376,7 +379,7 @@ public class UeService {
         JDialog dialog = new JDialog(parent, "Gestion des UE", true);
         dialogRef[0] = dialog;
         dialog.setContentPane(gestionUEPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -445,9 +448,8 @@ public class UeService {
         etudiantsPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Configuration de la table avec un modèle personnalisé
-        String[] columnNames = { "INE", "Prénom", "Nom", "Email", "Inscription" }; // Nouvelle colonne
-                                                                                   // "Inscription" avec icône
-                                                                                   // et bouton d'action
+        String[] columnNames = { "INE", "Prénom", "Nom", "Adresse", "DateNaissance", "Email", "Groupe", "Inscription" };
+
         DefaultTableModel etudiantsTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -495,7 +497,7 @@ public class UeService {
             // Dans votre code principal:
             for (Etudiant etudiant : etudiantsByUe) {
                 // Déterminer le statut d'inscription
-                String status = etudiant.isInscriptionValidee() ? "Validée" : "En Attente";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
 
                 // Ajouter la ligne avec le statut en texte (le renderer s'occupera de
                 // l'affichage)
@@ -503,14 +505,17 @@ public class UeService {
                         etudiant.getIne(),
                         etudiant.getPrenom(),
                         etudiant.getNom(),
+                        etudiant.getAdresse(),
+                        etudiant.getDateNaissance(),
                         etudiant.getEmail(),
+                        (etudiant.getGroupe() != null) ? etudiant.getGroupe().getNumero() : "Non Affecté",
                         status
                 });
             }
 
             // Configurer le renderer pour la colonne de statut (supposons que c'est la
             // colonne 4)
-            etudiantsTable.getColumnModel().getColumn(4).setCellRenderer(new StatusRenderer());
+            etudiantsTable.getColumnModel().getColumn(7).setCellRenderer(new StatusRenderer());
 
             // Filtrage en temps réel
             searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -653,7 +658,7 @@ public class UeService {
         // Création d'une boite de dialogue personnalisée
         JDialog dialog = new JDialog(parent, "Gestion des Étudiants", true);
         dialog.setContentPane(etudiantsPanel);
-        dialog.setSize(1000, 800);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
@@ -739,12 +744,15 @@ public class UeService {
                     etudiant.getIne().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getEmail().toLowerCase().contains(searchText.toLowerCase()) ||
                     etudiant.getPrenom().toLowerCase().contains(searchText.toLowerCase())) {
-                String status = etudiant.isInscriptionValidee() ? "Validée✅" : "En Attente❌";
+                String status = etudiant.isInscriptionValidee() ? "✅Validée" : "❌En Attente";
                 tableModel.addRow(new Object[] {
                         etudiant.getIne(),
                         etudiant.getPrenom(),
                         etudiant.getNom(),
+                        etudiant.getAdresse(),
+                        etudiant.getDateNaissance(),
                         etudiant.getEmail(),
+                        (etudiant.getGroupe() != null) ? etudiant.getGroupe().getNumero() : "Non Affecté",
                         status
 
                 });
@@ -768,7 +776,7 @@ public class UeService {
                         ue.getCredits(),
                         ue.getCoefficient(),
                         ue.getVolumeHoraire(),
-                        ue.getNomResponsable(),
+                        (ue.getEnseignant() == null) ? "Enseignant Non defini" : ue.getEnseignant(),
                         ue.isObligatoire() ? "obligatoire" : "optionnel"
                 });
             }
@@ -807,7 +815,194 @@ public class UeService {
     /**
      * Création d'un panneau pour ajouter une nouvelle UE
      */
-    private JPanel createNouvelleUEPanel(Formation preselectedFormation, JDialog parentDialog,
+    public JPanel createNouvelleUEPanelExterne(PanelSwitcher panelSwitcher, String DASHBOARD_PANEL) {
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+
+        // Titre avec dégradé
+        JPanel titlePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(70, 130, 180),
+                        getWidth(), 0, new Color(100, 149, 237));
+                g2d.setPaint(gp);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        titlePanel.setLayout(new BorderLayout());
+        titlePanel.setPreferredSize(new Dimension(titlePanel.getPreferredSize().width, 60));
+
+        JLabel titleLabel = new JLabel("Nouvelle Unité d'Enseignement", JLabel.CENTER);
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        panel.add(titlePanel, BorderLayout.NORTH);
+
+        // Formulaire
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // Champs du formulaire
+        String[] labels = { "Code UE:", "Intitulé:", "Formation:", "Crédits:", "Coefficient:", "Volume Horaire",
+                "Enseigant:",
+                "Caractéristique:" };
+        JTextField codeField = new JTextField(20);
+        JTextField intituleField = new JTextField(20);
+
+        // Liste déroulante des formations
+        DefaultComboBoxModel<Formation> formationModel = new DefaultComboBoxModel<>();
+        // Remplir le modèle avec les formations disponibles
+        // for (Formation formation : DataStore.formationService.getAll()) {
+        for (Formation formation : formationService.findAll()) {
+            formationModel.addElement(formation);
+        }
+
+        JComboBox<Formation> formationComboBox = new JComboBox<>(formationModel);
+
+        // Personnaliser l'affichage des formations dans la liste déroulante
+        formationComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Formation) {
+                    Formation formation = (Formation) value;
+                    setText(formation.getCode() + " - " + formation.getNom());
+                }
+                return this;
+            }
+        });
+
+        SpinnerModel creditModel = new SpinnerNumberModel(3, 1, 10, 1);
+        JSpinner creditSpinner = new JSpinner(creditModel);
+        SpinnerModel volumeHoraireModel = new SpinnerNumberModel(30, 5, 100, 5);
+        JSpinner volumeHoraireSpinner = new JSpinner(volumeHoraireModel);
+
+        SpinnerModel coefficientModel = new SpinnerNumberModel(1.0, 0.5, 5.0, 0.5);
+
+        JSpinner coefficientSpinner = new JSpinner(coefficientModel);
+
+        // Récupérer la liste des responsables pédagogiques depuis la base de données
+        List<Enseignant> responsables = enseignantDAO.findAll();
+        JComboBox<Enseignant> respCombo = new JComboBox<>(
+                responsables.toArray(new Enseignant[0]));
+
+        // Personnaliser l'affichage du ComboBox pour les responsables
+        respCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Enseignant) {
+                    Enseignant resp = (Enseignant) value;
+                    setText(resp.toString());
+                }
+                return this;
+            }
+        });
+
+        // Boutons radio pour le caractère de l'UE
+        JRadioButton obligatoireRadio = new JRadioButton("Obligatoire", true);
+        JRadioButton optionnelRadio = new JRadioButton("Optionnel");
+        ButtonGroup caractereGroup = new ButtonGroup();
+        caractereGroup.add(obligatoireRadio);
+        caractereGroup.add(optionnelRadio);
+        JPanel caracterePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        caracterePanel.add(obligatoireRadio);
+        caracterePanel.add(optionnelRadio);
+        JComponent[] fields = {
+                codeField, intituleField, formationComboBox, creditSpinner,
+                volumeHoraireSpinner, coefficientSpinner, respCombo, caracterePanel
+        };
+
+        // Ajouter les champs au formulaire
+        for (int i = 0; i < labels.length; i++) {
+            JLabel label = new JLabel(labels[i]);
+            label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            gbc.gridx = 0;
+            gbc.gridy = i;
+            gbc.gridwidth = 1;
+            gbc.weightx = 0.1;
+            formPanel.add(label, gbc);
+            gbc.gridx = 1;
+            gbc.weightx = 0.9;
+            formPanel.add(fields[i], gbc);
+        }
+        panel.add(formPanel, BorderLayout.CENTER);
+
+        // Boutons d'action
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(240, 240, 240));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JButton annulerButton = createStyledButton("Annuler", new Color(120, 120, 120));
+        JButton enregistrerButton = createStyledButton("Enregistrer", new Color(46, 204, 113));
+
+        buttonPanel.add(annulerButton);
+        buttonPanel.add(enregistrerButton);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Action des boutons
+        enregistrerButton.addActionListener(e -> {
+            if (codeField.getText().isEmpty() || intituleField.getText().isEmpty()
+                    || formationComboBox.getSelectedItem() == null) {
+                JOptionPane.showMessageDialog(null,
+                        "Veuillez remplir tous les champs obligatoires.",
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Formation selectedFormation = (Formation) formationComboBox.getSelectedItem();
+
+            UE nouvelleUE = new UE();
+            nouvelleUE.setCode(codeField.getText());
+            nouvelleUE.setNom(intituleField.getText());
+            nouvelleUE.setCredits((int) creditSpinner.getValue());
+            nouvelleUE.setEnseignant((Enseignant) respCombo.getSelectedItem());
+
+            nouvelleUE.setCoefficient((Double) coefficientSpinner.getValue());
+            nouvelleUE.setFormation(selectedFormation);
+            nouvelleUE.setVolumeHoraire((int) volumeHoraireModel.getValue());
+            nouvelleUE.setObligatoire(obligatoireRadio.isSelected());
+
+            // Ajouter la caractéristique si disponible
+            // DataStore.addUE(nouvelleUE);
+            if (ueService.create(nouvelleUE)) {
+                formationComboBox.addItem(selectedFormation);
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Une erreur s'est produite lors de l'ajout de l'UE.",
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JOptionPane.showMessageDialog(null,
+                    "Unité d'enseignement créée avec succès!",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
+
+            // Revenir au tableau de bord via la méthode fournie
+            panelSwitcher.showPanel(DASHBOARD_PANEL);
+        });
+
+        annulerButton.addActionListener(e -> {
+            // Revenir au tableau de bord via la méthode fournie
+            panelSwitcher.showPanel(DASHBOARD_PANEL);
+        });
+
+        return panel;
+
+    }
+
+    public JPanel createNouvelleUEPanel(Formation preselectedFormation, JDialog parentDialog,
             DefaultTableModel tableModel) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
@@ -899,9 +1094,29 @@ public class UeService {
         JPanel caracterePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         caracterePanel.add(obligatoireRadio);
         caracterePanel.add(optionnelRadio);
+
+        // Récupérer la liste des responsables pédagogiques depuis la base de données
+        List<Enseignant> responsables = enseignantDAO.findAll();
+        JComboBox<Enseignant> respCombo = new JComboBox<>(
+                responsables.toArray(new Enseignant[0]));
+
+        // Personnaliser l'affichage du ComboBox pour les responsables
+        respCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Enseignant) {
+                    Enseignant resp = (Enseignant) value;
+                    setText(resp.toString());
+                }
+                return this;
+            }
+        });
+
         JComponent[] fields = {
                 codeField, intituleField, formationComboBox, creditSpinner,
-                volumeHoraireSpinner, coefficientSpinner, responsableField, caracterePanel
+                volumeHoraireSpinner, coefficientSpinner, respCombo, caracterePanel
         };
 
         // Ajouter les champs au formulaire
@@ -947,7 +1162,10 @@ public class UeService {
             nouvelleUE.setCode(codeField.getText());
             nouvelleUE.setNom(intituleField.getText());
             nouvelleUE.setCredits((int) creditSpinner.getValue());
-            nouvelleUE.setNomResponsable(responsableField.getText());
+            if (respCombo.getItemCount() > 0 && respCombo.getSelectedItem() != null) {
+
+                nouvelleUE.setEnseignant((Enseignant) respCombo.getSelectedItem());
+            }
 
             nouvelleUE.setCoefficient((Double) coefficientSpinner.getValue());
             nouvelleUE.setFormation(selectedFormation);
@@ -972,7 +1190,8 @@ public class UeService {
                     nouvelleUE.getCredits(),
                     nouvelleUE.getCoefficient(),
                     nouvelleUE.getVolumeHoraire(),
-                    (nouvelleUE.getNomResponsable() == null) ? "Enseignant NOn defini" : nouvelleUE.getNomResponsable(),
+                    (nouvelleUE.getEnseignant() == null) ? "Enseignant Non defini"
+                            : nouvelleUE.getEnseignant(),
                     nouvelleUE.isObligatoire() ? "obligatoire" : "optionnel"
             });
 
@@ -1073,7 +1292,7 @@ public class UeService {
 
         JSpinner coefficientSpinner = new JSpinner(coefficientModel);
 
-        JTextField responsableField = new JTextField(ue.getNomResponsable(), 20);
+        JTextField responsableField = new JTextField(ue.getEnseignant().toString(), 20);
 
         // Boutons radio pour le caractère de l'UE
         JRadioButton obligatoireRadio = new JRadioButton("Obligatoire", true);
@@ -1091,10 +1310,28 @@ public class UeService {
         } else {
             optionnelRadio.setSelected(true);
         }
+        // Récupérer la liste des responsables pédagogiques depuis la base de données
+        List<Enseignant> responsables = enseignantDAO.findAll();
+        JComboBox<Enseignant> respCombo = new JComboBox<>(
+                responsables.toArray(new Enseignant[0]));
+
+        // Personnaliser l'affichage du ComboBox pour les responsables
+        respCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Enseignant) {
+                    Enseignant resp = (Enseignant) value;
+                    setText(resp.getNom() + " " + resp.getPrenom());
+                }
+                return this;
+            }
+        });
 
         JComponent[] fields = {
                 codeField, intituleField, formationComboBox, creditSpinner,
-                coefficientSpinner, volumeHoraireSpinner, responsableField, caracterePanel
+                coefficientSpinner, volumeHoraireSpinner, respCombo, caracterePanel
         };
 
         // Ajouter les champs au formulaire
@@ -1140,8 +1377,8 @@ public class UeService {
             ue.setCode(codeField.getText());
             ue.setNom(intituleField.getText());
             ue.setCredits((int) creditSpinner.getValue());
-            // ue.setDescription(descriptionArea.getText());
-            ue.setNomResponsable(responsableField.getText());
+
+            ue.setEnseignant(null);
             ue.setCoefficient((Double) coefficientSpinner.getValue());
             ue.setVolumeHoraire((int) volumeHoraireModel.getValue());
             ue.setObligatoire(obligatoireRadio.isSelected() ? true : false);
@@ -1165,7 +1402,12 @@ public class UeService {
             tableModel.setValueAt(ue.getCredits(), rowIndex, 2);
             tableModel.setValueAt(ue.getCoefficient(), rowIndex, 3);
             tableModel.setValueAt(ue.getVolumeHoraire(), rowIndex, 4);
-            tableModel.setValueAt(ue.getNomResponsable(), rowIndex, 5);
+            if (respCombo.getItemCount() > 0) {
+                tableModel.setValueAt(ue.getEnseignant(), rowIndex, 5);
+            } else {
+                // Optionnel : gérer le cas où il n'y a pas d'éléments
+                System.out.println("Le JComboBox Responsable est vide.");
+            }
 
             tableModel.setValueAt(ue.isObligatoire() ? "obligatoire" : "optionnel", rowIndex, 6);
             JOptionPane.showMessageDialog(parentDialog,
@@ -1186,7 +1428,7 @@ public class UeService {
     public void showUEsList(FenetrePrincipal parent, Formation formation) {
         // Créer une fenêtre de dialogue
         JDialog dialog = new JDialog(parent, "UEs de la formation " + formation.getNom(), true);
-        dialog.setSize(600, 400);
+        dialog.setSize(screenSize);
         dialog.setLocationRelativeTo(parent);
         dialog.setLayout(new BorderLayout());
 
@@ -1271,7 +1513,7 @@ public class UeService {
                 addTableCell(table, etudiant.getPrenom(), cellFont);
                 addTableCell(table, etudiant.getNom(), cellFont);
                 addTableCell(table, etudiant.getEmail(), cellFont);
-                addTableCell(table, etudiant.getSexe().getLabel(), cellFont);
+                addTableCell(table, etudiant.getSexe().getPremiereLettre(), cellFont);
                 addTableCell(table, formatDate(etudiant.getDateNaissance()), cellFont);
                 addTableCell(table, etudiant.getAdresse(), cellFont);
             }
@@ -1304,7 +1546,7 @@ public class UeService {
                 boolean isSelected, boolean hasFocus, int row, int column) {
             if (value instanceof String) {
                 JLabel label = new JLabel((String) value);
-                if (((String) value).contains("Validée")) {
+                if (((String) value).contains("Valid")) {
                     label.setIcon(FontIcon.of(MaterialDesign.MDI_CHECK_CIRCLE));
                     label.setForeground(SUCCESS_COLOR);
                 } else {

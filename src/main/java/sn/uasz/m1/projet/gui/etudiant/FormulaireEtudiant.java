@@ -261,6 +261,10 @@ public class FormulaireEtudiant extends JFrame {
         JPanel sexePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
         sexePanel.setBackground(Color.WHITE);
         
+        // Configurer les boutons radio
+        hommeButton.setSelected(true);  // Sélectionner homme par défaut
+        
+        // Ajouter les boutons au groupe
         sexeGroup.add(hommeButton);
         sexeGroup.add(femmeButton);
         
@@ -268,6 +272,7 @@ public class FormulaireEtudiant extends JFrame {
         hommeButton.setIcon(FontIcon.of(MaterialDesign.MDI_HUMAN_MALE, 20, PRIMARY_COLOR));
         femmeButton.setIcon(FontIcon.of(MaterialDesign.MDI_HUMAN_FEMALE, 20, PRIMARY_COLOR));
         
+        // Ajouter les boutons au panneau
         sexePanel.add(hommeButton);
         sexePanel.add(femmeButton);
         

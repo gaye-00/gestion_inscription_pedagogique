@@ -128,6 +128,8 @@ public class EmailServiceImpl implements EmailService {
             
             // Envoi du message
             Transport.send(message);
+
+            System.out.println("\n###Email sent successfully to " + toEmail + "\n");
             
         } catch (MessagingException e) {
             throw new EmailException("Erreur lors de l'envoi de l'email", e);

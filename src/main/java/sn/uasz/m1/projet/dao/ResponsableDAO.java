@@ -90,7 +90,7 @@ public class ResponsableDAO implements GenericService<ResponsablePedagogique> {
         EntityManager em = JPAUtil.getEntityManager();
 
         return new Etat(em.createQuery("SELECT COUNT(f) FROM Formation f", Long.class).getSingleResult(),
-                em.createQuery("SELECT COUNT(u) FROM UE u", Long.class).getSingleResult(), em.createQuery(
+                em.createQuery("SELECT COUNT(u) FROM Enseignant u", Long.class).getSingleResult(), em.createQuery(
                         "SELECT COUNT(DISTINCT e) FROM Etudiant e JOIN e.ues u", Long.class)
                         .getSingleResult(),
                 em.createQuery("SELECT COUNT(e) FROM Etudiant e", Long.class).getSingleResult());

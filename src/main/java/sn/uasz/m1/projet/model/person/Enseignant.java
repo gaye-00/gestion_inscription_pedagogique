@@ -4,7 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,17 +27,24 @@ import sn.uasz.m1.projet.model.formation.UE;
 @Entity
 @Table(name = "enseignant")
 public class Enseignant {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(unique = true)
     private String matricule;
     private String nom;
     private String prenom;
     private String email;
     private String telephone;
 
-    @OneToMany(mappedBy = "enseignant", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "enseignant", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<UE> ues = new HashSet<>();
+
+ 
+    @Override
+    public String toString() {
+        return this.prenom + " " + this.nom;
+
+    }
 }
