@@ -11,8 +11,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -360,6 +362,7 @@ public class FormulaireEtudiant extends JFrame {
         etudiant.setAdresse(adresse);
         etudiant.setDateNaissance(dateNaissance);
         etudiant.setIne(genererIne());
+        etudiant.setUes(formation.getUes() != null ? formation.getUes().stream().filter(fnctn -> fnctn.isObligatoire()).collect(Collectors.toSet()) : Collections.emptySet());
 
         // Persistance
         try {

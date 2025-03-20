@@ -1,7 +1,6 @@
 package sn.uasz.m1.projet.gui.responsablePedagogique;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -11,9 +10,6 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
@@ -22,23 +18,15 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
@@ -47,22 +35,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
-import javax.swing.table.TableRowSorter;
-
 import org.kordamp.ikonli.materialdesign.MaterialDesign;
 import org.kordamp.ikonli.swing.FontIcon;
 import sn.uasz.m1.projet.dao.EnseignantDAO;
 import sn.uasz.m1.projet.dao.EtudiantDAO;
 import sn.uasz.m1.projet.dao.FormationDAO;
 import sn.uasz.m1.projet.dao.ResponsableDAO;
-import sn.uasz.m1.projet.interfacesEcouteur.PanelSwitcher;
 import sn.uasz.m1.projet.model.formation.Formation;
-import sn.uasz.m1.projet.model.formation.Niveau;
-import sn.uasz.m1.projet.model.person.Enseignant;
 import sn.uasz.m1.projet.model.person.Etudiant;
-import sn.uasz.m1.projet.model.person.ResponsablePedagogique;
-
-import sn.uasz.m1.projet.model.person.Utilisateur;
 
 public class EtudiantGUI {
     private final ResponsableDAO responsableDAO;

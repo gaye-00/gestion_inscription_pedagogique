@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jakarta.persistence.EntityManager;
@@ -16,6 +17,7 @@ import sn.uasz.m1.projet.interfaces.GenericService;
 import sn.uasz.m1.projet.interfaces.IEtudiantDAO;
 import sn.uasz.m1.projet.model.formation.Formation;
 import sn.uasz.m1.projet.model.formation.Groupe;
+import sn.uasz.m1.projet.model.formation.TypeGroupe;
 import sn.uasz.m1.projet.model.formation.UE;
 import sn.uasz.m1.projet.model.person.Etudiant;
 import sn.uasz.m1.projet.utils.JPAUtil;
@@ -127,9 +129,12 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
                 // Envoyer un e-mail après validation
                 envoyerEmailValidation(etudiant);
 
+                // Ajouter l'étudiant dans un groupe
+                ajouterDansGroupe(etudiant); 
+                
                 return true;
             } else {
-                LOGGER.warning("Échec de la validation : étudiant introuvable (ID: " + etudiantId + ")");
+                LOGGER.log(Level.WARNING, "\nEchec de la validation : Etudiant introuvable (ID: {0})\n", etudiantId);
                 transaction.rollback();
                 return false;
             }
@@ -137,8 +142,107 @@ public class EtudiantDAO implements GenericService<Etudiant>, IEtudiantDAO {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            LOGGER.severe("Erreur lors de la validation de l'inscription : " + e.getMessage());
+            // LOGGER.severe("Erreur lors de la validation de l'inscription : " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Erreur lors de la validation de l''inscription : {0}", e.getMessage());
             return false;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Ajoute un étudiant dans un groupe approprié de sa formation.
+     * Si aucun groupe n'existe ou si tous les groupes existants sont pleins,
+     * un nouveau groupe est créé pour accueillir l'étudiant.
+     * 
+     * @param etudiant L'étudiant à ajouter dans un groupe
+     */
+    public void ajouterDansGroupe(Etudiant etudiant) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction transaction = em.getTransaction();
+        
+        try {
+            transaction.begin();
+            
+            // Récupérer l'étudiant et sa formation depuis la base de données pour avoir les données à jour
+            etudiant = em.find(Etudiant.class, etudiant.getId());
+            Formation formation = etudiant.getFormation();
+            
+            if (formation == null) {
+                LOGGER.log(Level.WARNING, "\nImpossible d'ajouter l'étudiant dans un groupe: formation non définie (ID: {0})\n", etudiant.getId());
+                transaction.rollback();
+                return;
+            }
+            
+            // Rafraîchir la formation pour avoir les groupes à jour
+            formation = em.find(Formation.class, formation.getId());
+            Integer maxEffectif = formation.getMaxEffectifGroupe();
+            
+            if (maxEffectif == null || maxEffectif <= 0) {
+                LOGGER.log(Level.WARNING, "\nLa formation n'a pas défini de taille maximale de groupe valide (ID: {0})\n", formation.getId());
+                transaction.rollback();
+                return;
+            }
+            
+            // Chercher un groupe disponible
+            Groupe groupeDisponible = null;
+            TypeGroupe typeGroupe = TypeGroupe.TD; // Supposons que nous ajoutons dans des groupes de TD
+            
+            // Vérifier si la formation a des groupes
+            if (formation.getGroupes() != null && !formation.getGroupes().isEmpty()) {
+                // Chercher un groupe qui n'a pas atteint la capacité maximale
+                for (Groupe groupe : formation.getGroupes()) {
+                    if (groupe.getTypeGroupe() == typeGroupe && groupe.getEtudiants().size() < maxEffectif) {
+                        groupeDisponible = groupe;
+                        break;
+                    }
+                }
+            }
+            
+            // Si aucun groupe disponible, créer un nouveau groupe
+            if (groupeDisponible == null) {
+                groupeDisponible = new Groupe();
+                groupeDisponible.setTypeGroupe(typeGroupe);
+                groupeDisponible.setFormation(formation);
+                
+                // Déterminer le numéro du nouveau groupe
+                int numeroGroupe = 1;
+                if (formation.getGroupes() != null && !formation.getGroupes().isEmpty()) {
+                    // Trouver le plus grand numéro de groupe et ajouter 1
+                    for (Groupe g : formation.getGroupes()) {
+                        if (g.getTypeGroupe() == typeGroupe && g.getNumero() != null && g.getNumero() >= numeroGroupe) {
+                            numeroGroupe = g.getNumero() + 1;
+                        }
+                    }
+                }
+                groupeDisponible.setNumero(numeroGroupe);
+                
+                // Ajouter le groupe à la formation
+                formation.getGroupes().add(groupeDisponible);
+                em.persist(groupeDisponible);
+                LOGGER.log(Level.INFO, "Nouveau groupe créé: {0} pour la formation {1}", 
+                        new Object[]{groupeDisponible.toString(), formation.getNom()});
+            }
+            
+            // Ajouter l'étudiant au groupe
+            if (etudiant.getGroupe() != null) {
+                // Si l'étudiant est déjà dans un groupe, le retirer d'abord
+                etudiant.getGroupe().removeEtudiant(etudiant);
+            }
+            
+            groupeDisponible.addEtudiant(etudiant);
+            em.merge(etudiant);
+            em.merge(groupeDisponible);
+            
+            transaction.commit();
+            LOGGER.log(Level.INFO, "Étudiant {0} {1} ajouté au groupe {2}", 
+                    new Object[]{etudiant.getNom(), etudiant.getPrenom(), groupeDisponible.toString()});
+            
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            LOGGER.log(Level.SEVERE, "Erreur lors de l'ajout de l'étudiant dans un groupe: {0}", e.getMessage());
         } finally {
             em.close();
         }

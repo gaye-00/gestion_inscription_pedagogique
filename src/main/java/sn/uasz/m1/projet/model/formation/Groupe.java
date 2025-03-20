@@ -16,11 +16,15 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import sn.uasz.m1.projet.model.person.Etudiant;
 
+@EqualsAndHashCode(of = {"id"}) // Utiliser uniquement l'ID pour equals et hashCode
+@ToString(exclude = {"etudiants", "formation"}) // Exclure les relations pour éviter les cycles
 @Data
 @Getter
 @Setter
@@ -57,7 +61,8 @@ public class Groupe {
         etudiant.setGroupe(null);
     }
 
-    public String toString() {
-        return "Groupe-" + typeGroupe.getLabel() + "-" + this.numero;
-    }
+    // @Override
+    // public String toString() {
+    //     return "Groupe-" + typeGroupe.getLabel() + "-" + this.numero;
+    // }
 }

@@ -212,6 +212,7 @@ public class Gestion_Inscription_Initiator {
         f1.setNiveau(Niveau.L3);
         f1.setResponsable(responsables.get(0)); // Associer le premier responsable
         f1.setMaxEffectifGroupe(3);
+        // f1.setResponsableFormation();
         formations.add(f1);
         
         Formation f2 = new Formation();
@@ -377,6 +378,10 @@ public class Gestion_Inscription_Initiator {
     
     private void creerEtudiants() {
         List<Etudiant> etudiants = new ArrayList<>();
+
+        // Générer 20 nouveaux étudiants avec Faker
+        List<Formation> formations = formationDAO.findAll();
+        Formation formation = new Formation();
         
         // Ajouter les étudiants existants dans le SQL
         Etudiant etudiant1 = new Etudiant();
@@ -390,6 +395,7 @@ public class Gestion_Inscription_Initiator {
         etudiant1.setInscriptionValidee(false);
         etudiant1.setPassword(BCrypt.hashpw("e", BCrypt.gensalt()));
         // etudiant1.setRole("ETUDIANT");
+        etudiant1.setFormation(formations.get(random.nextInt(formations.size())));
         etudiants.add(etudiant1);
         
         Etudiant etudiant2 = new Etudiant();
@@ -403,6 +409,7 @@ public class Gestion_Inscription_Initiator {
         etudiant2.setInscriptionValidee(false);
         etudiant2.setPassword(BCrypt.hashpw("password123", BCrypt.gensalt()));
         // etudiant2.setRole("ETUDIANT");
+        etudiant2.setFormation(formations.get(random.nextInt(formations.size())));
         etudiants.add(etudiant2);
         
         Etudiant etudiant3 = new Etudiant();
@@ -416,6 +423,8 @@ public class Gestion_Inscription_Initiator {
         etudiant3.setInscriptionValidee(false);
         etudiant3.setPassword(BCrypt.hashpw("password456", BCrypt.gensalt()));
         // etudiant3.setRole("ETUDIANT");
+        // Associer l'étudiant à une formation
+        etudiant3.setFormation(formations.get(random.nextInt(formations.size())));
         etudiants.add(etudiant3);
         
         Etudiant etudiant4 = new Etudiant();
@@ -429,10 +438,10 @@ public class Gestion_Inscription_Initiator {
         etudiant4.setInscriptionValidee(false);
         etudiant4.setPassword(BCrypt.hashpw("password789", BCrypt.gensalt()));
         // etudiant4.setRole("ETUDIANT");
+        // Associer l'étudiant à une formation
+        etudiant4.setFormation(formations.get(random.nextInt(formations.size())));
         etudiants.add(etudiant4);
         
-        // Générer 20 nouveaux étudiants avec Faker
-        List<Formation> formations = formationDAO.findAll();
         
         for (int i = 5; i <= 24; i++) {
             Etudiant etudiant = new Etudiant();
@@ -459,7 +468,7 @@ public class Gestion_Inscription_Initiator {
             // etudiant.setRole("ETUDIANT");
             
             // Associer l'étudiant à une formation
-            Formation formation = formations.get(random.nextInt(formations.size()));
+            formation = formations.get(random.nextInt(formations.size()));
             etudiant.setFormation(formation);
             
             etudiants.add(etudiant);

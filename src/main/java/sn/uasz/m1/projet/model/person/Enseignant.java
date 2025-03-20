@@ -41,6 +41,9 @@ public class Enseignant {
     @OneToMany(mappedBy = "enseignant", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<UE> ues = new HashSet<>();
 
+    // @OneToMany(mappedBy = "responsableFormation", fetch = FetchType.EAGER)
+    // private Set<Formation> formations = new HashSet<>();
+
  
     @Override
     public String toString() {
