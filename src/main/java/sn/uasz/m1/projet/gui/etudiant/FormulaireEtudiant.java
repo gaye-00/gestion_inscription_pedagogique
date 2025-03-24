@@ -345,7 +345,6 @@ public class FormulaireEtudiant extends JFrame {
 
         // Génération des identifiants
         String email = genererEmail(prenom, nom);
-        // String password = genererMotDePasse();
         String plainPassword = genererMotDePasse(); // Stockez le mot de passe en clair pour l'affichage
         String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt()); // Cryptez le mot de passe
 
